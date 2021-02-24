@@ -33,7 +33,7 @@ We make sure to safeguard our users' private blog entries but also provide tools
 
 ***
 
-## Functions and Features
+<h2 id="functions-and-features">Functions and Features</h2>
 
 - Reader-friendly interface
 
@@ -48,6 +48,10 @@ We make sure to safeguard our users' private blog entries but also provide tools
 - Comments
 
 - Search
+
+- Post
+
+- Follow
 
 ***
 
@@ -129,3 +133,142 @@ Situations Where SQLite Works Well:
 
 - Embedded devices and the IOT
 
+***
+
+## Questions
+
+1. How does commenting on a post-work?
+
+The comment table associated with the post and account tables by their IDs. When an account comments on someone's post, the text comment will be inserted in the “comment_text” column with the automatically incrementing “comment_id” and “post_id”, ”account-id”.
+
+
+2. What if an account wants to register on the site, but his email address is already registered?
+
+First, the account can use a password to log in to their account. If it doesn't remember, the account can log into their account using the "forgot password" feature. Then a message about account recovery is sent to the client's email address. After confirming the ownership of the mail, the account can change the password and other data on the site
+
+
+3. How does an account log in to the site?
+
+The account enters their email address and password to form and with POST method and server searches from the database the input email and checks the input password with an active password. If they are equal then the account logs in.
+
+4. How images are arranged in publications?
+
+“post” table joins with tables like “image”, “image_post” by post_id and image_id. Out of here, the post searches for all images that belong to it and shows them in the post container.
+
+5. How does a follow action works?
+
+The account can follow other accounts, by the “follow” feature. It works like, the account’s(follower) id and selected account’s(leader) id inserts into the “follow” table.
+
+6. Can the author see the owner of the like?
+
+Yes, their can. Each post joins with “like” and “accounts” tables. If some account puts like to post, the account’s “account_id” and the post’s “post_id” save in the “like” table. Thus, giving access to maintain the ownership of the like.
+
+7. How do categories switch?
+
+Every category has its own id, and every category name in the navigation bar in its own links have
+something like id. Every time, when the account selects a category, the feed changes the category id, and of course, posts. Because the “post” table joins with the “category” table by “category_id”.
+
+8. Why is there information about the date in the comments, but not in the likes?
+
+Comments may help an account with some useful information, and information can change tomorrow. Maybe after adding a comment to the post, this information is already outdated. That's why, every account should see the date of the comment, so as not to get confused. Like does not carry such an important role.
+
+9. If I have an unwanted subscriber, how can I get rid of it?
+
+To do this operation, you must be logged in, then in the subscriber's department delete the account that you selected, if everything is successful, this account will be removed from your subscribers.
+
+10. Find the total number of subscribers of authors, whose name length is between 3-5. Search it only in posts, which category names length is less than 6.
+
+First, join “follow”, “account”, “category”, “post” tables. Find posts with a category name length is less than 6, after, take an account_name from it and check the length by 3,5 letter limit. Finally, output count of subscribers of the accounts.
+
+11. Find min length name of the account, who liked a post, with a category name, which length is more than 4, and followed by more than 10 accounts?
+
+Join “post”, “category”, “follow”, “accounts” tables. Then, find posts, which are with category name, which length is more than 4, after by “follow” table columns count followers of the account, if followers are more than 10, then output the min length name from the accounts.
+
+12. How works the rendering of the post?
+
+First things first, when a post renders on the site, it requires some pieces of information from “account”, “like”, “comment”, “image”, “image_post” and also, “category” tables. A server takes the account name, avatar and category name, date, title, content, like’s amount, amount of view and finally, comments of the post and puts them together. 
+
+13. How many likes does the post have, with categories name’s length is more than 4, and who are its owners?
+
+To do this, we will join the "like" table with “post” and “account”, “category”. Find posts with categories name’s length more than 4, and in order to see the number of likes, we can check the “post.like_count” value. Then, output “post.like_count” value,  the column “like.account_id” value.
+ 
+14. Is the commentator of the post, which is called "Golden Park", and has a couple of pictures, liked the post and is he the follower of the author? If yes output the name of the commentator.
+
+We will join tables “comments”, “post”, “account”, “follow” and “postImage”. Then, If the value of “post.title” is “Golden Park” and If the commentator id exists in the “like.account_id” column, and If the commentator id exists in the “follow_id” output name of the commentator.
+
+15. Is the subscriber the author of a post that has more than 30 likes, and the category name length is more than 4, and the number of images of the post is more than one? If yes, output subscriber name.
+
+For this question, we must join the “follow”, “post”, “category”, “postImage” tables. After that, if in the table "follow" the account's id exists and in the "post" table if its id exists in "post.account_id" and the value of "post.like_counter" is more than 30, If the length of "category.name" is more than 4 and finally, count the rows in the table "postImage", if the count is more than one, output the name of the subscriber.
+
+16. Find the name of the account that left comments in November last year on the publication called "Player of the Year", which is among those who put a like, there is a user named "Ivan"
+
+To solve this problem, we need to join the tables "account", "comment", "post", "like". After, find comments that left the account in November last year by checking the value of “comment.date” column. Then, find if exists a post named “Player of the Year” and via “like” table, a check is there an owner named "Ivan", output the account name.
+
+***
+
+## Link to a dataset for the project:
+https://drive.google.com/drive/folders/1JFoSSLcWD-iCh6jkggGZKUH9WsSo9pL4?usp=sharing
+
+***
+
+## Table structures
+
+<pre>
+account (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password TEXT NOT NULL,
+    image_id INT
+);
+
+post (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INT NOT NULL,
+    category_id INT,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_date DATETIME DEFAULT current_timestamp,
+    like_count INT DEFAULT 0,
+    view_count INT DEFAULT 0
+);
+
+comment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INT NOT NULL,
+    account_id INT NOT NULL,
+    content TEXT NOT NULL,
+    added_date DATETIME DEFAULT current_timestamp
+);
+
+category (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL
+);
+
+image (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL
+);
+
+likes (
+    post_id INT NOT NULL,
+    account_id INT NOT NULL
+);
+
+subscriptions (
+    account_id INT NOT NULL,
+    following_id INT NOT NULL
+);
+
+postimages (
+    post_id INT NOT NULL,
+    image_id INT NOT NULL
+);
+</pre>
+
+***
+
+## Use-case diagram
+
+![influence-UseCase-UML](./influence-UseCase-UML.png "influence-UseCase-UML")
