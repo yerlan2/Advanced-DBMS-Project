@@ -144,8 +144,7 @@ The comment table associated with the post and account tables by their IDs. When
 
 2. What if an account wants to register on the site, but his email address is already registered?
 
-First, the account can use a password to log in to their account. If it doesn't remember, the account can log into their account using the "forgot password" feature. Then a message about account recovery is sent to the client's email address. After confirming the ownership of the mail, the account can change the password and other data on the site
-
+First, the account can use a password to log in to their account. If it doesn't remember, the account can log into their account using the "forgot password" feature. Then a message about account recovery is sent to the client's email address. After confirming the ownership of the mail, the account can change the password and other data on the site.
 
 3. How does an account log in to the site?
 
@@ -165,8 +164,7 @@ Yes, their can. Each post joins with “like” and “accounts” tables. If so
 
 7. How do categories switch?
 
-Every category has its own id, and every category name in the navigation bar in its own links have
-something like id. Every time, when the account selects a category, the feed changes the category id, and of course, posts. Because the “post” table joins with the “category” table by “category_id”.
+Every category has its own id, and every category name in the navigation bar in its own links have something like id. Every time, when the account selects a category, the feed changes the category id, and of course, posts. Because the “post” table joins with the “category” table by “category_id”.
 
 8. Why is there information about the date in the comments, but not in the likes?
 
@@ -186,7 +184,7 @@ Join “post”, “category”, “follow”, “accounts” tables. Then, find
 
 12. How works the rendering of the post?
 
-First things first, when a post renders on the site, it requires some pieces of information from “account”, “like”, “comment”, “image”, “image_post” and also, “category” tables. A server takes the account name, avatar and category name, date, title, content, like’s amount, amount of view and finally, comments of the post and puts them together. 
+First things first, when a post renders on the site, it requires some pieces of information from “account”, “like”, “comment”, “image”, “image_post” and also, “category” tables. A server takes the account name, avatar and category name, date, title, content, like’s amount, amount of view and finally, comments of the post and puts them together.
 
 13. How many likes does the post have, with categories name’s length is more than 4, and who are its owners?
 
