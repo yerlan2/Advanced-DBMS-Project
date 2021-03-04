@@ -274,3 +274,21 @@ postimages (
 ## Use-case diagram
 
 ![influence-UseCase-UML](./influence-UseCase-UML.png "influence-UseCase-UML")
+
+***
+
+## Explanation of design decisions
+ 
+* The relationship between **follower** and **account** is many to many because one user can have multiple followers. One follower can have multiple followed users.
+* The relationship between **image** and **account** is one-to-zero-or-one relationship because when a primary key of image table becomes PK & FK in account table. 
+* The relationship between **account** and **post** is one-to-many relationship because one record in account table can be associated with one or more records in post table. For example, each account can have many posts.
+* The relationship between **post** and **like** is one-to-many relationship because one record in post table can be associated with one or more records in like table. For example, each post can have many likes.
+* The relationship between **post** and **comment** is one-to-zero-or-many because one record in post table can be associated with no record or many records. For example, each post can have zero comments or many comments.
+* The relationship between **category** and **post** is many-to-many relationship because one category can have multiple posts. One post can have multiple categories.
+* The relationship between **post** and **post_image** is one-to-many relationship because one record in post table can be associated with one or more records in post_image table. For example, each post can have many images.
+* The relationship between **image** and **post_image** is one-to-many relationship because one record in image table can be associated with one or more records in post_image table.
+
+***
+## ER diagram
+
+![Influence-ER.png](./Influence-ER.png "Influence-ER")
