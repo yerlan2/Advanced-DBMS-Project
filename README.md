@@ -137,26 +137,26 @@ Situations Where SQLite Works Well:
 
 ## Questions
 
-1. How does commenting on a post-work?
+1. Find comments which have less than 10 words in content and where owner post's title starts with "M" letter and which was published more than 15,000 hours ago. 
 
-The comment table associated with the post and account tables by their IDs. When an account comments on someone's post, the text comment will be inserted in the “comment_text” column with the automatically incrementing “comment_id” and “post_id”, ”account-id”.
+We must to join posts table with comments and output comment id with filtering it by comment's content word count and post's title and by time, using julianday function subtracting now date with post created date and multipkying by 24. Then, select comment's id as output.  
 
 
-2. What if an account wants to register on the site, but his email address is already registered?
+2. List authors by their popularity(amount of followers, likes and comments)
 
-First, the account can use a password to log in to their account. If it doesn't remember, the account can log into their account using the "forgot password" feature. Then a message about account recovery is sent to the client's email address. After confirming the ownership of the mail, the account can change the password and other data on the site.
+Join five tables aacounts, subscriptions, posts, likes, comments. Then, order the result by counts of subscriptions, likes, comments and select account's name.
 
-3. How does an account log in to the site?
+3. How many posts, which title starts with "A" and published no earlier than one week and have more than 35 likes, have an author, which have more than 10 followings.
 
-The account enters their email address and password to form and with POST method and server searches from the database the input email and checks the input password with an active password. If they are equal then the account logs in.
+Let's start from joining all necesarry tables: accounts, subscriptions, posts, likes. After, filter the result by count of followings and post title by letter and by using julianday function check for needed time, by count of likes. Then, select count of posts.  
 
-4. How images are arranged in publications?
+4. Find the name of the accounts and the number of their subscribers who has an avatar image and has at least one subscriber, and that is the author of the post, from the category science and in the title of which there is the word "white". List the output by follower amount in descending order.
 
-“post” table joins with tables like “image”, “image_post” by post_id and image_id. Out of here, the post searches for all images that belong to it and shows them in the post container.
+By joining accounts, images, subscriptions, posts, categories tables we will get large information, let's filter it by follower quantity by counting following_id and post title by the word "white" and by science category. Then, output account name and follower quantity. 
 
-5. How does a follow action works?
+5. Find a post that is more than 3 years old and which has more than three comments and at least 2 images and category is IT or music and which the author liked his own publication. List the output by comment amount in descending order.
 
-The account can follow other accounts, by the “follow” feature. It works like, the account’s(follower) id and selected account’s(leader) id inserts into the “follow” table.
+After joining comments, categories, postImages, likes and posts filter it by julianday function substracting now date with post created date, dividing by 365. After, filter it by IT or music categories and post images amount and comments quantity with descending order by comment amount. Then, select post id as output. 
 
 6. Can the author see the owner of the like?
 
