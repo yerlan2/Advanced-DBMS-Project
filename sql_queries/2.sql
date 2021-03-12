@@ -11,6 +11,6 @@ INNER JOIN posts p ON p.account_id = a.id
 INNER JOIN likes l ON l.post_id = p.id
 INNER JOIN comments cm ON cm.post_id = p.id
 GROUP BY a.id
-ORDER BY count(s.following_id) and count(l.post_id) and count(l.post_id) DESC;
+ORDER BY count(s.following_id) and count(l.post_id) and count(cm.post_id) DESC;
 
 SELECT * FROM v_second;
