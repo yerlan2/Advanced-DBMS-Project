@@ -158,29 +158,30 @@ By joining accounts, images, subscriptions, posts, categories tables we will get
 
 After joining comments, categories, postImages, likes and posts filter it by julianday function substracting now date with post created date, dividing by 365. After, filter it by IT or music categories and post images amount and comments quantity with descending order by comment amount. Then, select post id as output. 
 
-6. Can the author see the owner of the like?
+6. Can a owner of posts see a owner of a like?<br>Display Post ID and a name of a owner of a like. Posts from Account#03880's posts.
 
 Yes, their can. Each post joins with “like” and “accounts” tables. If some account puts like to post, the account’s “account_id” and the post’s “post_id” save in the “like” table. Thus, giving access to maintain the ownership of the like.
 
-7. How do categories switch?
+7. How do categories switch?<br>Display a name_of_a_post_owner and a post_ID of the accounts where Account#06103 follows, as well as a post category - sport.
 
 Every category has its own id, and every category name in the navigation bar in its own links have something like id. Every time, when the account selects a category, the feed changes the category id, and of course, posts. Because the “post” table joins with the “category” table by “category_id”.
 
-8. Why is there information about the date in the comments, but not in the likes?
+8. Display a name_of_a_owner_of_a_like and ID of other posts that this owner of a like of a post with ID 2077 liked.
 
-Comments may help an account with some useful information, and information can change tomorrow. Maybe after adding a comment to the post, this information is already outdated. That's why, every account should see the date of the comment, so as not to get confused. Like does not carry such an important role.
+First, we take all the account IDs that liked the post ID 2077, and in the likes table, we iterate over the other post IDs of the users who liked the post ID 2077, except for the same post ID 2077.
 
-9. If I have an unwanted subscriber, how can I get rid of it?
+9. If I don't like a user, how can I unsubscribe from him?
 
-To do this operation, you must be logged in, then in the subscriber's department delete the account that you selected, if everything is successful, this account will be removed from your subscribers.
+To do this operation, you must be logged in, then in the subscriber's department unsubscribe the account that you selected, if everything is successful, this account will be removed from your subscribers.
 
-10. Find the total number of subscribers of authors, whose name length is between 3-5. Search it only in posts, which category names length is less than 6.
+10. Display a owner of a post and followers of a owner of a post with ID 6862, if a length of a category name is greater than 6.
 
-First, join “follow”, “account”, “category”, “post” tables. Find posts with a category name length is less than 6, after, take an account_name from it and check the length by 3,5 letter limit. Finally, output count of subscribers of the accounts.
+First join the "posts", "categories", "accounts", "subscriptions" tables.
+Find a owner of a post, then from accounts, select an account name, where the account ID is the follower of a post owner if  post ID 6862 and the category name length is greater than 6.
 
-11. Find min length name of the account, who liked a post, with a category name, which length is more than 4, and followed by more than 10 accounts?
+11. Display account name, post number and average like number for each account with more than 5 followers, if that account has an post.
 
-Join “post”, “category”, “follow”, “accounts” tables. Then, find posts, which are with category name, which length is more than 4, after by “follow” table columns count followers of the account, if followers are more than 10, then output the min length name from the accounts.
+First, we find accounts with more than 5 subscribers, join posts and accounts, and then we group a accounts and find the number of posts and the average number of likes for all posts for the account, if there are any post in it.
 
 12. How works the rendering of the post?
 
@@ -216,56 +217,56 @@ https://drive.google.com/drive/folders/1JFoSSLcWD-iCh6jkggGZKUH9WsSo9pL4?usp=sha
 ## Table structures
 
 <pre>
-account (
+accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    image_id INT
+    image_id INTEGER
 );
 
-post (
+posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INT NOT NULL,
-    category_id INT,
+    account_id INTEGER NOT NULL,
+    category_id INTEGER,
     title VARCHAR(255) NOT NULL,
     content TEXT,
     created_date DATETIME DEFAULT current_timestamp,
-    like_count INT DEFAULT 0,
-    view_count INT DEFAULT 0
+    like_count INTEGER DEFAULT 0,
+    view_count INTEGER DEFAULT 0
 );
 
-comment (
+comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    post_id INT NOT NULL,
-    account_id INT NOT NULL,
+    post_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     added_date DATETIME DEFAULT current_timestamp
 );
 
-category (
+categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL UNIQUE
 );
 
-image (
+images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     path TEXT NOT NULL
 );
 
 likes (
-    post_id INT NOT NULL,
-    account_id INT NOT NULL
+    post_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL
 );
 
 subscriptions (
-    account_id INT NOT NULL,
-    following_id INT NOT NULL
+    follower_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL
 );
 
 postimages (
-    post_id INT NOT NULL,
-    image_id INT NOT NULL
+    post_id INTEGER NOT NULL,
+    image_id INTEGER NOT NULL
 );
 </pre>
 
