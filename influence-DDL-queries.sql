@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS likes (
     account_id INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS subscriptions (
-    account_id INTEGER NOT NULL,
-    following_id INTEGER NOT NULL
+    follower_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS postimages (
     post_id INTEGER NOT NULL,
