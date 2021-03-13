@@ -10,11 +10,11 @@ CREATE VIEW v_third
 AS 
 SELECT count(p.id)
 FROM accounts a
-INNER JOIN subscriptions s ON s.account_id = a.id
+INNER JOIN subscriptions s ON s.follower_id = a.id
 INNER JOIN posts p ON p.account_id = a.id
 INNER JOIN likes l ON l.post_id = p.id
 GROUP BY a.id
-HAVING count(s.account_id) > 10
+HAVING count(s.follower_id) > 10
 AND p.title LIKE 'A%'
 AND (julianday('now') - julianday(p.created_date)) <= 7
 AND count(l.post_id) > 35;
