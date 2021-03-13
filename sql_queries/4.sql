@@ -12,10 +12,10 @@ ON categories (name);
 
 CREATE VIEW v_fourth
 AS 
-Select a.name, count(s.following_id) follower_amount
+Select a.name, count(s.author_id) follower_amount
 FROM accounts a
 INNER JOIN images i ON a.image_id = i.id
-INNER JOIN subscriptions s ON a.id = s.following_id
+INNER JOIN subscriptions s ON a.id = s.author_id
 INNER JOIN posts p ON a.id = p.account_id 
 INNER JOIN categories c ON p.category_id = c.id
 GROUP BY a.name
