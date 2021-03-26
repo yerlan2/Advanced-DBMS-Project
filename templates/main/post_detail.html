@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+
+{% block title %}Home{% endblock title %}
+
+{% block body %}
+    <a href="/">Home</a>
+    <a href="/signup">Sign up</a>
+    <a href="/login">Login</a>
+    <div class="post">
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.content }}</p>
+    </div>
+{% endblock body %}

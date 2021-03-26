@@ -9,7 +9,9 @@
     <div class="posts">
         {% for post in posts %}
             <article>
-                {{ post.title }}
+                <a href="/p/{{ post.id }}">
+                    {{ post.title }}
+                </a>
             </article>
         {% endfor %}
     </div>
