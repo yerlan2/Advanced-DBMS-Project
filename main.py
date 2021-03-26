@@ -37,11 +37,19 @@ def create_comment(conn, comment):
     return cur.lastrowid
 
 
-def select_accounts(conn):
-    sql = ''' SELECT * FROM accounts ORDER BY id DESC '''
+def create_follow(conn, follow):
+    sql = ''' INSERT INTO subscriptions(follower_id, author_id) VALUES(?,?) '''
+    cur = conn.cursor()
+    cur.execute(sql, follow)
+    conn.commit()
+    return cur.lastrowid
+
+
+def select_accounts(conn, account_id):
+    sql = ''' SELECT * FROM accounts WHERE id!=? ORDER BY id DESC '''
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(sql)
+    cur.execute(sql, (account_id,))
     return cur.fetchall()
 
 
@@ -61,7 +69,7 @@ def select_account_all(conn, account):
 
 def select_posts(conn):
     sql = '''
-        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.created_date created_date, p.like_count like_count, p.view_count like_count 
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count like_count 
         FROM posts p, postimages pi, images i, accounts a, categories c
         WHERE p.id=pi.post_id 
         AND pi.image_id=i.id 
@@ -151,7 +159,7 @@ def account_list():
         return redirect("/login")
     conn = get_db()
     categories = select_sql(conn, "SELECT * FROM categories")
-    accounts = select_accounts(conn)
+    accounts = select_accounts(conn, session['account'][0])
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 
 
@@ -205,17 +213,18 @@ def unfollow():
     if request.method == "POST":
         follower_id = session['account'][0]
         author_id = request.form['author_id']
-        print(follower_id, author_id)
-    else:
-        pass
+
+    
 @app.route('/follow', methods=['POST', 'GET'])
 def follow():
     if request.method == "POST":
         follower_id = session['account'][0]
         author_id = request.form['author_id']
-        print(follower_id, author_id)
-    else:
-        pass
+        conn = get_db()
+        if not check_follow(conn, follower_id, author_id):
+            with conn:
+                follow_id = create_follow(conn, (follower_id, author_id))
+            return redirect(f"/a/{author_id}")
 
 
 def check_follow(conn, follower_id, author_id):
@@ -230,7 +239,7 @@ def account_detail(id):
     follower_id = session['account'][0]
     conn = get_db()
     posts = select_account_post(conn, id)
-    return render_template("main/account_detail.html", posts=posts, check_follow=check_follow(conn, follower_id, id))
+    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id))
 
 
 @app.route('/c/<int:id>')
