@@ -298,7 +298,7 @@ def post_detail(id):
     comments = select_comments(conn, id)
     images = select_postimages(conn, id)
     update_view_count(conn, id)
-    return render_template("main/post_detail1.html", post=post, comments=comments, images=images)
+    return render_template("main/post_detail.html", post=post, comments=comments, images=images)
 
 
 @app.route('/add-comment', methods=['POST', 'GET'])
