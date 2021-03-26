@@ -75,33 +75,41 @@ With a website, users can easily access information about your business. They ca
 
 ### Programming language: **Python**
 
-### **♕ Django**
+### **⚜ Flask**
 
-Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design. Built by experienced developers, it takes care of much of the hassle of Web development, so you can focus on writing your app without needing to reinvent the wheel. It’s free and open source. 
+Flask is a lightweight Web Server Gateway Interface (WSGI) web application framework.
 
-**Why Django?**
+A micro web framework that has minimal dependencies on external libraries, written in Python, which was formed for a faster and easier use, and also has the ability to scale up to complex applications.
 
-With Django, you can take Web applications from concept to launch in a matter of hours. Django takes care of much of the hassle of Web development, so you can focus on writing your app without needing to reinvent the wheel. It’s free and open source.
+**Why Flask?**
 
-**Ridiculously fast.**
+Flask is considered the best framework for light web application serving, it is a lightweight framework and can also be useful to the developer if he or she chooses a web interface to the default system based UI.
 
-Django was designed to help developers take applications from concept to completion as quickly as possible.
+**It is very flexible and easy.**
+
+There are only a handful of parts of flask that cannot be changed or altered because of its simplicity and minimalism. This means that almost all the parts of flask are open to change, unlike some other web frameworks.
+
+Flask comes with a template engine that lets you use the same user interface for multiple pages. Python can insert variables into the templates.
 
 **Fully loaded.**
 
-Django includes dozens of extras you can use to handle common Web development tasks. Django takes care of user authentication, content administration, site maps, RSS feeds, and many more tasks — right out of the box.
+Flask includes dozens of extras you can use to handle common Web development tasks. Flask takes care of user authentication, routing, site maps, RSS feeds, and many more tasks — right out of the box.
 
 **Reassuringly secure.**
 
-Django takes security seriously and helps developers avoid many common security mistakes, such as SQL injection, cross-site scripting, cross-site request forgery and clickjacking. Its user authentication system provides a secure way to manage user accounts and passwords.
+Flask takes security seriously and helps developers avoid many common security mistakes, such as SQL injection, cross-site scripting, cross-site request forgery and clickjacking. Its user authentication system provides a secure way to manage user accounts and passwords.
 
 **Exceedingly scalable.**
 
-Some of the busiest sites on the planet use Django’s ability to quickly and flexibly scale to meet the heaviest traffic demands.
+Some of the busiest sites on the planet use Flask’s ability to quickly and flexibly scale to meet the heaviest traffic demands.
 
 **Incredibly versatile.**
 
-Companies, organizations and governments have used Django to build all sorts of things — from content management systems to social networks to scientific computing platforms.
+Companies, organizations and governments have used Flask to build all sorts of things — from content management systems to social networks to scientific computing platforms.
+
+**Modular and extremely comprehensive.**
+
+Flask has a lightweight and modular design, so it easy to transform it to the web framework you need with a few extensions without weighing it down.
 
 <br>
 
