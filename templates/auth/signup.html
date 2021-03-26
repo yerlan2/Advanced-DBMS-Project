@@ -3,12 +3,19 @@
 {% block title %}Home{% endblock title %}
 
 {% block body %}
+    {% for err in err_msg %}
+    <div>
+        {{ err }}
+    </div>
+    {% endfor %}
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/signup.css') }}">
-    <form action="#">
+    <form method="post">
         <h2>Sign up</h2>
-        <input type="email"    placeholder="Email">
-        <input type="text"     placeholder="Username">
-        <input type="password" placeholder="Password">
-        <input type="password" placeholder="Password confirm">
+        <input type="email"    name="email"            placeholder="Email"            required>
+        <input type="text"     name="username"         placeholder="Username"         required>
+        <input type="password" name="password"         placeholder="Password"         required>
+        <input type="password" name="password_confirm" placeholder="Password confirm" required>
+        <button>Sign up</button>
     </form>
 {% endblock body %}

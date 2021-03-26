@@ -3,6 +3,14 @@
 {% block title %}Home{% endblock title %}
 
 {% block body %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main/home.css') }}">
-    <h2>Home page</h2>
+    <a href="/">Home</a>
+    <a href="/signup">Sign up</a>
+    <a href="/login">Login</a>
+    <div class="posts">
+        {% for post in posts %}
+            <article>
+                {{ post.title }}
+            </article>
+        {% endfor %}
+    </div>
 {% endblock body %}

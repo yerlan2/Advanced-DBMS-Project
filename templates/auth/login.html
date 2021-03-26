@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+
+{% block title %}Home{% endblock title %}
+
+{% block body %}
+    {% for err in err_msg %}
+    <div>
+        {{ err }}
+    </div>
+    {% endfor %}
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/signup.css') }}">
+    <form method="post">
+        <h2>Login</h2>
+        <input type="email"    name="email"    placeholder="Email"    required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button>Log in</button>
+    </form>
+{% endblock body %}
