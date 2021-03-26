@@ -69,12 +69,13 @@ def select_account_all(conn, account):
 
 def select_posts(conn):
     sql = '''
-        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count like_count 
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM posts p, postimages pi, images i, accounts a, categories c
         WHERE p.id=pi.post_id 
         AND pi.image_id=i.id 
         AND p.account_id=a.id 
         AND p.category_id=c.id 
+        AND p.id < 21
         GROUP BY pi.post_id
         '''
     conn.row_factory = sqlite3.Row
@@ -332,6 +333,15 @@ def signup():
 def logout():
     session['logged_in'] = False
     return redirect("/")
+
+
+@app.template_filter('strftime')
+def _jinja2_filter_datetime(datestr):
+    from datetime import date
+
+    date_time = date.fromisoformat(datestr)
+    date_time_obj = date_time.strftime("%b %d")
+    return date_time_obj
 
 
 if __name__=="__main__":
