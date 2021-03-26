@@ -3,11 +3,496 @@
 {% block title %}Home{% endblock title %}
 
 {% block body %}
-    <a href="/">Home</a>
-    <a href="/signup">Sign up</a>
-    <a href="/login">Login</a>
-    <div class="post">
-        <h2>{{ post.title }}</h2>
-        <p>{{ post.content }}</p>
+<!DOCTYPE html>
+<html lang="en">
+<div id="translate-button" style="background-color: white;"><img
+        src="data:image/png;base64,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">
+</div>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Influence</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/css') }}"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/style.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/bootstrap.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery-ui.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/owl.carousel.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/owl.theme.default.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/owl.theme.default.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.fancybox.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/bootstrap-datepicker.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/flaticon.css') }}">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/aos.css') }}">
+    <link
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.mb.YTPlayer.min.css') }}"
+        media="all" rel="stylesheet" type="text/css">
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/style(1).css') }}">
+</head>
+
+<body data-spy="scroll" data-target=".site-navbar-target" data-offset="300" data-aos-easing="slide"
+    data-aos-duration="800" data-aos-delay="0">
+    <div class="site-wrap">
+        <div class="site-mobile-menu site-navbar-target">
+            <div class="site-mobile-menu-header">
+                <div class="site-mobile-menu-close mt-3">
+                    <span class="icon-close2 js-menu-toggle"></span>
+                </div>
+            </div>
+            <div class="site-mobile-menu-body">
+                <ul class="site-nav-wrap">
+                    <li class="active">
+                        <a href="/" class="nav-link text-left">Home</a>
+                    </li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Categories</a>
+                    </li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Politics</a>
+                    </li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Business</a>
+                    </li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Health</a>
+                    </li>
+                    <li><a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Design</a></li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                            class="nav-link text-left">Sport</a>
+                    </li>
+                    <li>
+                        <a href="https://preview.colorlib.com/theme/meranda/contact.html"
+                            class="nav-link text-left">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="header-top">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-12 col-lg-6 d-flex">
+                        <a href="/" class="site-logo">
+                            Influence
+                        </a>
+                        <a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                            class="ml-auto d-inline-block d-lg-none site-menu-toggle js-menu-toggle text-black"><span
+                                class="icon-menu h3"></span></a>
+                    </div>
+                    <div class="col-12 col-lg-6 ml-auto d-flex">
+                        <div class="ml-md-auto top-social d-none d-lg-inline-block"></div>
+                        <form action="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                            class="search-form d-inline-block">
+                            <div class="d-flex">
+                                <input type="email" class="form-control" placeholder="Search...">
+                                <button type="submit" class="btn btn-secondary"><span
+                                        class="icon-search"></span></button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-6 d-block d-lg-none text-right">
+                    </div>
+                </div>
+            </div>
+            <div id="sticky-wrapper" class="sticky-wrapper" style="height: 56.7px;">
+                <div class="site-navbar py-2 js-sticky-header site-navbar-target d-none pl-0 d-lg-block" role="banner"
+                    style="width: 1519.2px;">
+                    <div class="container">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-auto">
+                                <nav class="site-navigation position-relative text-right" role="navigation">
+                                    <ul class="site-menu main-menu js-clone-nav mr-auto d-none pl-0 d-lg-block">
+                                        <li class="active">
+                                            <a href="/" class="nav-link text-left">Home</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Categories</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Politics</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Business</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Health</a>
+                                        </li>
+                                        <li><a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Design</a></li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/categories.html"
+                                                class="nav-link text-left">Sport</a>
+                                        </li>
+                                        <li>
+                                            <a href="https://preview.colorlib.com/theme/meranda/contact.html"
+                                                class="nav-link text-left">Contact</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="site-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 single-content">
+                        <p class="mb-5">
+                            <img src="./Meranda — Website Template by Colorlib_files/big_img_1.jpg" alt="Image"
+                                class="img-fluid">
+                        </p>
+                        <h1 class="mb-4">
+                            {{ post.title }}
+                        </h1>
+                        <div class="post-meta d-flex mb-5">
+                            <div class="bio-pic mr-3">
+                                <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg" alt="Image"
+                                    class="img-fluidid">
+                            </div>
+                            <div class="vcard">
+                                <span class="d-block"><a
+                                        href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
+                                        Rogers</a> in <a
+                                        href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
+                                <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read</span>
+                            </div>
+                        </div>
+                        {{ post.content }}
+                        <div class="pt-5">
+                            <p>Categories: <a
+                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Design</a>, <a
+                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Events</a> Tags:
+                                <a href="https://preview.colorlib.com/theme/meranda/blog-single.html#">#html</a>, <a
+                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">#trends</a>
+                            </p>
+                        </div>
+                        <div class="pt-5">
+                            <div class="section-title">
+                                <h2 class="mb-5">6 Comments</h2>
+                            </div>
+                            <ul class="comment-list">
+                                <li class="comment">
+                                    <div class="vcard bio">
+                                        <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                            alt="Image placeholder">
+                                    </div>
+                                    <div class="comment-body">
+                                        <h3>Jean Doe</h3>
+                                        <div class="meta">January 9, 2018 at 2:21pm</div>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur quidem
+                                            laborum necessitatibus, ipsam impedit vitae autem, eum officia, fugiat saepe
+                                            enim sapiente iste iure! Quam voluptas earum impedit necessitatibus, nihil?
+                                        </p>
+                                        <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                class="reply">Reply</a></p>
+                                    </div>
+                                </li>
+                                <li class="comment">
+                                    <div class="vcard bio">
+                                        <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                            alt="Image placeholder">
+                                    </div>
+                                    <div class="comment-body">
+                                        <h3>Jean Doe</h3>
+                                        <div class="meta">January 9, 2018 at 2:21pm</div>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur quidem
+                                            laborum necessitatibus, ipsam impedit vitae autem, eum officia, fugiat saepe
+                                            enim sapiente iste iure! Quam voluptas earum impedit necessitatibus, nihil?
+                                        </p>
+                                        <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                class="reply">Reply</a></p>
+                                    </div>
+                                    <ul class="children">
+                                        <li class="comment">
+                                            <div class="vcard bio">
+                                                <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                                    alt="Image placeholder">
+                                            </div>
+                                            <div class="comment-body">
+                                                <h3>Jean Doe</h3>
+                                                <div class="meta">January 9, 2018 at 2:21pm</div>
+                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur
+                                                    quidem laborum necessitatibus, ipsam impedit vitae autem, eum
+                                                    officia, fugiat saepe enim sapiente iste iure! Quam voluptas earum
+                                                    impedit necessitatibus, nihil?</p>
+                                                <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                        class="reply">Reply</a></p>
+                                            </div>
+                                            <ul class="children">
+                                                <li class="comment">
+                                                    <div class="vcard bio">
+                                                        <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                                            alt="Image placeholder">
+                                                    </div>
+                                                    <div class="comment-body">
+                                                        <h3>Jean Doe</h3>
+                                                        <div class="meta">January 9, 2018 at 2:21pm</div>
+                                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                                                            Pariatur quidem laborum necessitatibus, ipsam impedit vitae
+                                                            autem, eum officia, fugiat saepe enim sapiente iste iure!
+                                                            Quam voluptas earum impedit necessitatibus, nihil?</p>
+                                                        <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                                class="reply">Reply</a></p>
+                                                    </div>
+                                                    <ul class="children">
+                                                        <li class="comment">
+                                                            <div class="vcard bio">
+                                                                <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                                                    alt="Image placeholder">
+                                                            </div>
+                                                            <div class="comment-body">
+                                                                <h3>Jean Doe</h3>
+                                                                <div class="meta">January 9, 2018 at 2:21pm</div>
+                                                                <p>Lorem ipsum dolor sit amet, consectetur adipisicing
+                                                                    elit. Pariatur quidem laborum necessitatibus, ipsam
+                                                                    impedit vitae autem, eum officia, fugiat saepe enim
+                                                                    sapiente iste iure! Quam voluptas earum impedit
+                                                                    necessitatibus, nihil?</p>
+                                                                <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                                        class="reply">Reply</a></p>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="comment">
+                                    <div class="vcard bio">
+                                        <img src="./Meranda — Website Template by Colorlib_files/person_1.jpg"
+                                            alt="Image placeholder">
+                                    </div>
+                                    <div class="comment-body">
+                                        <h3>Jean Doe</h3>
+                                        <div class="meta">January 9, 2018 at 2:21pm</div>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur quidem
+                                            laborum necessitatibus, ipsam impedit vitae autem, eum officia, fugiat saepe
+                                            enim sapiente iste iure! Quam voluptas earum impedit necessitatibus, nihil?
+                                        </p>
+                                        <p><a href="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                                class="reply">Reply</a></p>
+                                    </div>
+                                </li>
+                            </ul>
+
+                            <div class="comment-form-wrap pt-5">
+                                <div class="section-title">
+                                    <h2 class="mb-5">Leave a comment</h2>
+                                </div>
+                                <form action="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                                    class="p-5 bg-light">
+                                    <div class="form-group">
+                                        <label for="name">Name *</label>
+                                        <input type="text" class="form-control" id="name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email *</label>
+                                        <input type="email" class="form-control" id="email">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="website">Website</label>
+                                        <input type="url" class="form-control" id="website">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="message">Message</label>
+                                        <textarea name="" id="message" cols="30" rows="10"
+                                            class="form-control"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="submit" value="Post Comment" class="btn btn-primary py-3">
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 ml-auto">
+                        <div class="section-title">
+                            <h2>Popular Posts</h2>
+                        </div>
+                        <div class="trend-entry d-flex">
+                            <div class="number align-self-start">01</div>
+                            <div class="trend-contents">
+                                <h2><a href="https://preview.colorlib.com/theme/meranda/blog-single.html">News Needs to
+                                        Meet Its Audiences Where They Are</a></h2>
+                                <div class="post-meta">
+                                    <span class="d-block"><a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
+                                            Rogers</a> in <a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
+                                    <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read <span
+                                            class="icon-star2"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trend-entry d-flex">
+                            <div class="number align-self-start">02</div>
+                            <div class="trend-contents">
+                                <h2><a href="https://preview.colorlib.com/theme/meranda/blog-single.html">News Needs to
+                                        Meet Its Audiences Where They Are</a></h2>
+                                <div class="post-meta">
+                                    <span class="d-block"><a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
+                                            Rogers</a> in <a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
+                                    <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read <span
+                                            class="icon-star2"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trend-entry d-flex">
+                            <div class="number align-self-start">03</div>
+                            <div class="trend-contents">
+                                <h2><a href="https://preview.colorlib.com/theme/meranda/blog-single.html">News Needs to
+                                        Meet Its Audiences Where They Are</a></h2>
+                                <div class="post-meta">
+                                    <span class="d-block"><a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
+                                            Rogers</a> in <a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
+                                    <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read <span
+                                            class="icon-star2"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trend-entry d-flex pl-0">
+                            <div class="number align-self-start">04</div>
+                            <div class="trend-contents">
+                                <h2><a href="https://preview.colorlib.com/theme/meranda/blog-single.html">News Needs to
+                                        Meet Its Audiences Where They Are</a></h2>
+                                <div class="post-meta">
+                                    <span class="d-block"><a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
+                                            Rogers</a> in <a
+                                            href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
+                                    <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read <span
+                                            class="icon-star2"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <p>
+                            <a href="https://preview.colorlib.com/theme/meranda/blog-single.html#" class="more">See All
+                                Popular <span class="icon-keyboard_arrow_right"></span></a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="site-section subscribe bg-light">
+            <div class="container">
+                <form action="https://preview.colorlib.com/theme/meranda/blog-single.html#"
+                    class="row align-items-center">
+                    <div class="col-md-5 mr-auto">
+                        <h2>Newsletter Subcribe</h2>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Perferendis aspernatur ut at quae
+                            omnis pariatur obcaecati possimus nisi ea iste!</p>
+                    </div>
+                    <div class="col-md-6 ml-auto">
+                        <div class="d-flex">
+                            <input type="email" class="form-control" placeholder="Enter your email">
+                            <button type="submit" class="btn btn-secondary"><span
+                                    class="icon-paper-plane"></span></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="copyright">
+                            <p>
+
+                                Copyright ©
+                                <script type="text/javascript" async=""
+                                    src="./Meranda — Website Template by Colorlib_files/analytics.js.загрузка"></script>
+                                <script>document.write(new Date().getFullYear());</script>2021 All rights reserved |
+                                This template is made with <i class="icon-heart text-danger" aria-hidden="true"></i> by
+                                <a href="https://colorlib.com/" target="_blank">Colorlib</a>
+
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+
+    <div id="loader" class="fullscreen"><svg class="circular" width="48px" height="48px">
+            <circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"></circle>
+            <circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10"
+                stroke="#ff5e15"></circle>
+        </svg></div>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery-3.3.1.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery-migrate-3.0.1.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery-ui.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/popper.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/bootstrap.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/owl.carousel.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.stellar.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.countdown.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/bootstrap-datepicker.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.easing.1.3.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/aos.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.fancybox.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.sticky.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/jquery.mb.YTPlayer.min.js.загрузка') }}"></script>
+    <script
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/main.js.загрузка') }}"></script>
+
+    <script async=""
+        src="{{ url_for('static', filename='css/Meranda — Website Template by Colorlib_files/js') }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-23581568-13');
+    </script>
+
+</body>
+<div id="edge-translate-notifier-container" class="edge-translate-notifier-center"></div>
+
+</html>
+
 {% endblock body %}
