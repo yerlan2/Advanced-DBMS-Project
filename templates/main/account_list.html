@@ -8,8 +8,6 @@
     <a href="/login">Login</a>
     <a href="/logout">Logout</a>
     <a href="/accounts">Accounts</a>
-    <a href="/authors">Authors</a>
-    <a href="/followers">Followers</a>
     <hr>
     <div class="categories">
         {% for category in categories %}
@@ -21,12 +19,11 @@
         {% endfor %}
     </div>
     <hr>
-    <div class="posts">
-        {% for post in posts %}
+    <div class="accounts">
+        {% for account in accounts %}
             <article>
-                <img src="{{ post.image_path }}" width="200px" alt="{{ post.image_id }}">
-                <a href="/p/{{ post.id }}">
-                    {{ post.title }} | {{ post.category_name }}
+                <a href="/a/{{ account.id }}">
+                    {{ account.name }}
                 </a>
             </article>
         {% endfor %}

@@ -1,4 +1,4 @@
-from flask import Flask, g, request, flash, session, render_template, redirect, url_for, make_response, jsonify
+from flask import Flask, g, request, session, render_template, redirect, url_for, make_response, jsonify
 import sqlite3
 import hashlib
 import os
@@ -37,6 +37,14 @@ def create_comment(conn, comment):
     return cur.lastrowid
 
 
+def select_accounts(conn):
+    sql = ''' SELECT * FROM accounts ORDER BY id DESC '''
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()
+
+
 def select_account(conn, account):
     sql = ''' SELECT email, password FROM accounts WHERE email=? AND password=? '''
     cur = conn.cursor()
@@ -49,6 +57,39 @@ def select_account_all(conn, account):
     cur = conn.cursor()
     cur.execute(sql, account)
     return cur.fetchone()
+
+
+def select_posts(conn):
+    sql = '''
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.created_date created_date, p.like_count like_count, p.view_count like_count 
+        FROM posts p, postimages pi, images i, accounts a, categories c
+        WHERE p.id=pi.post_id 
+        AND pi.image_id=i.id 
+        AND p.account_id=a.id 
+        AND p.category_id=c.id 
+        GROUP BY pi.post_id
+        '''
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()
+
+
+def select_account_post(conn, account_id):
+    sql = ''' 
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.created_date created_date, p.like_count like_count, p.view_count like_count 
+        FROM posts p, postimages pi, images i, accounts a, categories c
+        WHERE p.id=pi.post_id 
+        AND pi.image_id=i.id 
+        AND p.account_id=a.id 
+        AND p.category_id=c.id 
+        GROUP BY pi.post_id
+        HAVING a.id=?
+        '''
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(sql, (account_id,))
+    return cur.fetchall()
 
 
 def select_post(conn, post_id):
@@ -100,8 +141,96 @@ def index():
         return redirect("/login")
     conn = get_db()
     categories = select_sql(conn, "SELECT * FROM categories")
-    posts = select_sql(conn, "SELECT * FROM posts ORDER BY id DESC")
+    posts = select_posts(conn)
     return render_template("main/home.html", categories=categories, posts=posts)
+
+
+@app.route('/accounts')
+def account_list():
+    if not session.get('logged_in'):
+        return redirect("/login")
+    conn = get_db()
+    categories = select_sql(conn, "SELECT * FROM categories")
+    accounts = select_accounts(conn)
+    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+
+
+def select_subscript(conn, follower_id, col="authors"):
+    if col == "authors":
+        sql = ''' 
+            SELECT a.id, a.name, a.email, a.password, a.image_id
+            FROM subscriptions s, accounts a
+            WHERE s.author_id = a.id
+            AND s.follower_id=?
+            ORDER BY a.id DESC
+            '''
+    elif col == "followers":
+        sql = ''' 
+            SELECT a.id, a.name, a.email, a.password, a.image_id
+            FROM subscriptions s, accounts a
+            WHERE s.follower_id = a.id
+            AND s.author_id=?
+            ORDER BY a.id DESC
+            '''
+    else:
+        return []
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(sql, (follower_id,))
+    return cur.fetchall()
+
+@app.route('/authors')
+def author_list():
+    if not session.get('logged_in'):
+        return redirect("/login")
+    follower_id = session['account'][0]
+    conn = get_db()
+    categories = select_sql(conn, "SELECT * FROM categories")
+    accounts = select_subscript(conn, follower_id, "authors")
+    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+
+@app.route('/followers')
+def follower_list():
+    if not session.get('logged_in'):
+        return redirect("/login")
+    follower_id = session['account'][0]
+    conn = get_db()
+    categories = select_sql(conn, "SELECT * FROM categories")
+    accounts = select_subscript(conn, follower_id, "followers")
+    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+
+
+@app.route('/unfollow', methods=['POST', 'GET'])
+def unfollow():
+    if request.method == "POST":
+        follower_id = session['account'][0]
+        author_id = request.form['author_id']
+        print(follower_id, author_id)
+    else:
+        pass
+@app.route('/follow', methods=['POST', 'GET'])
+def follow():
+    if request.method == "POST":
+        follower_id = session['account'][0]
+        author_id = request.form['author_id']
+        print(follower_id, author_id)
+    else:
+        pass
+
+
+def check_follow(conn, follower_id, author_id):
+    sql = ''' SELECT * FROM subscriptions WHERE follower_id=? AND author_id=? '''
+    cur = conn.cursor()
+    cur.execute(sql, (follower_id, author_id))
+    rows = cur.fetchall()
+    return True if rows else False
+
+@app.route('/a/<int:id>')
+def account_detail(id):
+    follower_id = session['account'][0]
+    conn = get_db()
+    posts = select_account_post(conn, id)
+    return render_template("main/account_detail.html", posts=posts, check_follow=check_follow(conn, follower_id, id))
 
 
 @app.route('/c/<int:id>')
@@ -118,7 +247,7 @@ def post_detail(id):
     post = select_post(conn, id)
     comments = select_comments(conn, id)
     images = select_postimages(conn, id)
-    return render_template("main/post_detail.html", post=post, comments=comments, images=images)
+    return render_template("main/post_detail1.html", post=post, comments=comments, images=images)
 
 
 @app.route('/add-comment', methods=['POST', 'GET'])
@@ -132,10 +261,10 @@ def add_comment():
         err_msg = []
         conn = get_db()
         conn.row_factory = sqlite3.Row
-        account = select_account_all(conn, session.get('account'))
+        account = session.get('account')
         if account:
             with conn:
-                comment = (post_id, account["id"], content)
+                comment = (post_id, account[0], content)
                 comment_id = create_comment(conn, comment)
             return redirect(f"/p/{post_id}")
         else:
@@ -151,7 +280,7 @@ def login():
         err_msg = []
         conn = get_db()
         account = (email, hashlib.sha1(password.encode()).hexdigest())
-        account = select_account(conn, account)
+        account = select_account_all(conn, account)
         if account:
             session['account'] = account
             session['logged_in'] = True

@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+
+{% block title %}Home{% endblock title %}
+
+{% block body %}
+    <a href="/">Home</a>
+
+    {% if check_follow %}
+    <form action="{{ url_for('unfollow') }}" method="post">
+        <input type="hidden" name="author_id" value="{{ account_id }}">
+        <button>Unfollow</button>
+    </form>
+    {% else %}
+    <form action="{{ url_for('follow') }}" method="post">
+        <input type="hidden" name="author_id" value="{{ account_id }}">
+        <button>Follow</button>
+    </form>
+    {% endif %}
+
+    <div class="posts">
+        {% for post in posts %}
+            <article>
+                <img src="{{ post.image_path }}" width="200px" alt="{{ post.image_id }}">
+                <a href="/p/{{ post.id }}">
+                    {{ post.title }} | {{ post.category_name }}
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock body %}
