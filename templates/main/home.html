@@ -6,13 +6,26 @@
     <a href="/">Home</a>
     <a href="/signup">Sign up</a>
     <a href="/login">Login</a>
-    <div class="posts">
-        {% for post in posts %}
+    <a href="/logout">Logout</a>
+    <hr>
+    <div class="categories">
+        {% for category in categories %}
             <article>
-                <a href="/p/{{ post.id }}">
-                    {{ post.title }}
+                <a href="/c/{{ category.id }}">
+                    {{ category.name }}
                 </a>
             </article>
         {% endfor %}
     </div>
+    <hr>
+    <div class="posts">
+        {% for post in posts %}
+            <article>
+                <a href="/p/{{ post.id }}">
+                    {{ post.id }} | {{ post.title }} | {{ post.category_id }}
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+
 {% endblock body %}
