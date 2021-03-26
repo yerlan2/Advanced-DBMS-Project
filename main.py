@@ -45,6 +45,24 @@ def create_follow(conn, follow):
     return cur.lastrowid
 
 
+def delete_follow(conn, follow):
+    sql = ''' DELETE FROM subscriptions WHERE follower_id=? AND author_id=? '''
+    cur = conn.cursor()
+    cur.execute(sql, follow)
+    conn.commit()
+
+
+def update_view_count(conn, post_id):
+    sql = ''' 
+        UPDATE posts
+        SET view_count = view_count + 1
+        WHERE id = ?
+        '''
+    cur = conn.cursor()
+    cur.execute(sql, (post_id,))
+    conn.commit()
+
+
 def select_accounts(conn, account_id):
     sql = ''' SELECT * FROM accounts WHERE id!=? ORDER BY id DESC '''
     conn.row_factory = sqlite3.Row
@@ -67,7 +85,7 @@ def select_account_all(conn, account):
     return cur.fetchone()
 
 
-def select_posts(conn):
+def select_posts(conn, page):
     sql = '''
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM posts p, postimages pi, images i, accounts a, categories c
@@ -75,16 +93,16 @@ def select_posts(conn):
         AND pi.image_id=i.id 
         AND p.account_id=a.id 
         AND p.category_id=c.id 
-        AND p.id < 21
         GROUP BY pi.post_id
+        LIMIT 10 OFFSET ?
         '''
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(sql)
+    cur.execute(sql, ((page-1)*10,))
     return cur.fetchall()
 
 
-def select_account_post(conn, account_id):
+def select_account_post(conn, page, account_id):
     sql = ''' 
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.created_date created_date, p.like_count like_count, p.view_count like_count 
         FROM posts p, postimages pi, images i, accounts a, categories c
@@ -94,10 +112,11 @@ def select_account_post(conn, account_id):
         AND p.category_id=c.id 
         GROUP BY pi.post_id
         HAVING a.id=?
+        LIMIT 10 OFFSET ?
         '''
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(sql, (account_id,))
+    cur.execute(sql, (account_id,(page-1)*10))
     return cur.fetchall()
 
 
@@ -109,11 +128,21 @@ def select_post(conn, post_id):
     return cur.fetchone()
 
 
-def select_post_category(conn, category_id):
-    sql = ''' SELECT * FROM posts WHERE category_id=? '''
+def select_post_category(conn, page, category_id):
+    sql = '''
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        FROM posts p, postimages pi, images i, accounts a, categories c
+        WHERE p.id=pi.post_id 
+        AND pi.image_id=i.id 
+        AND p.account_id=a.id 
+        AND p.category_id=c.id 
+        GROUP BY pi.post_id
+        HAVING c.id=?
+        LIMIT 10 OFFSET ?
+        '''
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
-    cur.execute(sql, (category_id,))
+    cur.execute(sql, (category_id, (page-1)*10))
     return cur.fetchall()
 
 
@@ -145,12 +174,13 @@ def select_sql(conn, sql):
 
 
 @app.route('/')
-def index():
+@app.route('/p/<int:page>')
+def index(page=1):
     if not session.get('logged_in'):
         return redirect("/login")
     conn = get_db()
     categories = select_sql(conn, "SELECT * FROM categories")
-    posts = select_posts(conn)
+    posts = select_posts(conn, page)
     return render_template("main/home.html", categories=categories, posts=posts)
 
 
@@ -167,26 +197,27 @@ def account_list():
 def select_subscript(conn, follower_id, col="authors"):
     if col == "authors":
         sql = ''' 
-            SELECT a.id, a.name, a.email, a.password, a.image_id
-            FROM subscriptions s, accounts a
-            WHERE s.author_id = a.id
-            AND s.follower_id=?
-            ORDER BY a.id DESC
-            '''
+        SELECT a.id, a.name, a.email, a.password, a.image_id
+        FROM subscriptions s, accounts a
+        WHERE s.author_id = a.id
+        AND s.follower_id=?
+        ORDER BY a.id DESC
+        '''
     elif col == "followers":
         sql = ''' 
-            SELECT a.id, a.name, a.email, a.password, a.image_id
-            FROM subscriptions s, accounts a
-            WHERE s.follower_id = a.id
-            AND s.author_id=?
-            ORDER BY a.id DESC
-            '''
+        SELECT a.id, a.name, a.email, a.password, a.image_id
+        FROM subscriptions s, accounts a
+        WHERE s.follower_id = a.id
+        AND s.author_id=?
+        ORDER BY a.id DESC
+        '''
     else:
         return []
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute(sql, (follower_id,))
     return cur.fetchall()
+
 
 @app.route('/authors')
 def author_list():
@@ -197,6 +228,7 @@ def author_list():
     categories = select_sql(conn, "SELECT * FROM categories")
     accounts = select_subscript(conn, follower_id, "authors")
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
+
 
 @app.route('/followers')
 def follower_list():
@@ -214,6 +246,11 @@ def unfollow():
     if request.method == "POST":
         follower_id = session['account'][0]
         author_id = request.form['author_id']
+        conn = get_db()
+        if check_follow(conn, follower_id, author_id):
+            with conn:
+                delete_follow(conn, (follower_id, author_id))
+            return redirect(f"/account/{author_id}")
 
     
 @app.route('/follow', methods=['POST', 'GET'])
@@ -225,7 +262,7 @@ def follow():
         if not check_follow(conn, follower_id, author_id):
             with conn:
                 follow_id = create_follow(conn, (follower_id, author_id))
-            return redirect(f"/a/{author_id}")
+            return redirect(f"/account/{author_id}")
 
 
 def check_follow(conn, follower_id, author_id):
@@ -235,28 +272,32 @@ def check_follow(conn, follower_id, author_id):
     rows = cur.fetchall()
     return True if rows else False
 
-@app.route('/a/<int:id>')
-def account_detail(id):
+
+@app.route('/account/<int:id>')
+@app.route('/account/<int:id>/p/<int:page>')
+def account_detail(id, page=1):
     follower_id = session['account'][0]
     conn = get_db()
-    posts = select_account_post(conn, id)
+    posts = select_account_post(conn, page, id)
     return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id))
 
 
-@app.route('/c/<int:id>')
-def post_category(id):
+@app.route('/category/<int:id>')
+@app.route('/category/<int:id>/p/<int:page>')
+def post_category(id, page=1):
     conn = get_db()
     categories = select_sql(conn, "SELECT * FROM categories")
-    posts = select_post_category(conn, id)
+    posts = select_post_category(conn, page, id)
     return render_template("main/home.html", categories=categories, posts=posts)
 
     
-@app.route('/p/<int:id>')
+@app.route('/post/<int:id>')
 def post_detail(id):
     conn = get_db()
     post = select_post(conn, id)
     comments = select_comments(conn, id)
     images = select_postimages(conn, id)
+    update_view_count(conn, id)
     return render_template("main/post_detail1.html", post=post, comments=comments, images=images)
 
 
@@ -276,7 +317,7 @@ def add_comment():
             with conn:
                 comment = (post_id, account[0], content)
                 comment_id = create_comment(conn, comment)
-            return redirect(f"/p/{post_id}")
+            return redirect(f"/post/{post_id}")
         else:
             return redirect("/login")
 

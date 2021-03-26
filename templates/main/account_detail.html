@@ -21,7 +21,7 @@
         {% for post in posts %}
             <article>
                 <img src="{{ post.image_path }}" width="200px" alt="{{ post.image_id }}">
-                <a href="/p/{{ post.id }}">
+                <a href="/post/{{ post.id }}">
                     {{ post.title }} | {{ post.category_name }}
                 </a>
             </article>
