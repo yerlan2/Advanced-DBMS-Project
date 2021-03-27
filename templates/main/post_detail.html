@@ -14,38 +14,46 @@
                 <div class="row">
                     <div class="col-1 mr-auto">
                         <div>
-                        <div id="like-box" class="follow-btn">
+                            <div id="like-box" class="follow-btn">
 
-                        {% if session['logged_in'] %}
-                            <input type="hidden" name="post_id" value="{{ post.id }}">
-                            <a id="like" style="cursor:pointer;">
-                                {% if check_like and post.like_count > 0 %}❤{% else %}🤍{% endif %}
-                                {{ post.like_count }}
-                            </a>
-                            <script>
-                                let like = document.querySelector("#like");
-                                let post_id = document.querySelector("[name=post_id]");
-                                like.addEventListener('click', ()=> {
-                                    fetch('/like?post_id='+post_id.value)
-                                    .then(response => response.text())
-                                    .then(function(result) {
-                                        like.innerHTML = result;
-                                    })
-                                    .catch((error) => {
-                                        console.error('Error:', error);
+                                {% if session['logged_in'] %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <a id="like" style="cursor:pointer;">
+                                    <div style="display: flex;">
+                                        {% if check_like and post.like_count > 0 %}
+                                        <h3>❤&nbsp;</h3>
+                                        {% else %}
+                                        <h3>🤍&nbsp;</h3>
+                                        {% endif %}
+                                        <h3>{{ post.like_count }}</h3>
+                                    </div>
+                                </a>
+                                <script>
+                                    let like = document.querySelector("#like");
+                                    let post_id = document.querySelector("[name=post_id]");
+                                    like.addEventListener('click', () => {
+                                        fetch('/like?post_id=' + post_id.value)
+                                            .then(response => response.text())
+                                            .then(function (result) {
+                                                console.log(result);
+                                                like.innerHTML = result;
+                                            })
+                                            .catch((error) => {
+                                                console.error('Error:', error);
+                                            });
                                     });
-                                });
-                            </script>
-                        {% else %}
-                            <a href="{{ url_for('login', next=request.full_path) }}">
-                                🤍
-                                {{ post.like_count }}
-                            </a>
-                        {% endif %}
+                                </script>
+                                {% else %}
+                                <a href="{{ url_for('login', next=request.full_path) }}">
+                                    <div class="d-flex">
+                                        <h3>🤍&nbsp;</h3>
+                                        <h3>{{ post.like_count }}</h3>
+                                    </div>
+                                </a>
+                                {% endif %}
 
+                            </div>
                         </div>
-                        </div>
-                        <div>👁‍🗨 {{ post.view_count }}</div>
                     </div>
                     <div class="col-lg-8 single-content">
                         {% if images|length %}
