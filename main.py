@@ -86,6 +86,7 @@ def post_category(id, page=1):
 @app.route('/post/<int:id>')
 def post_detail(id):
     conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     post = execute_query_param(conn, (id,), """
         SELECT p.id id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM posts p, accounts a, categories c, images i
@@ -106,7 +107,7 @@ def post_detail(id):
         AND pi.post_id=p.id and p.id=? """
     ).fetchall()
     execute_commit(conn, (id,), "UPDATE posts SET view_count = view_count + 1 WHERE id = ?")
-    return render_template("main/post_detail.html", post=post, comments=comments, images=images)
+    return render_template("main/post_detail.html", post=post, comments=comments, images=images, categories=categories)
 
 
 @app.route('/accounts')
@@ -138,7 +139,9 @@ def account_detail(id, page=1):
         HAVING a.id=?
         LIMIT 10 OFFSET ? """
     ).fetchall()
-    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id))
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id),
+        categories=categories)
 
 
 @app.route('/authors')

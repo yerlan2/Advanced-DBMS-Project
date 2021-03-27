@@ -29,36 +29,17 @@
             <div class="container">
                 <div class="d-flex align-items-center">
                     <div class="mr-auto">
-                        <nav class="site-navigation position-relative text-right" role="navigation">
+                        <nav class="site-navigation position-relative text-center" role="navigation">
                             <ul class="site-menu main-menu js-clone-nav mr-auto d-none pl-0 d-lg-block">
                                 <li class="active">
                                     <a href="/" class="nav-link text-left">Home</a>
                                 </li>
                                 <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Categories</a>
-                                </li>
-                                <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Politics</a>
-                                </li>
-                                <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Business</a>
-                                </li>
-                                <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Health</a>
-                                </li>
-                                <li><a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Design</a></li>
-                                <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/categories.html"
-                                        class="nav-link text-left">Sport</a>
-                                </li>
-                                <li>
-                                    <a href="https://preview.colorlib.com/theme/meranda/contact.html"
-                                        class="nav-link text-left">Contact</a>
+                                    {% for category in categories %}
+                                    <a href="/category/{{ category.id }}" class="nav-link text-left">
+                                        {{ category.name }}
+                                    </a>
+                                    {% endfor %}
                                 </li>
                                 <li>
                                     {% if session['logged_in'] %}
@@ -69,8 +50,7 @@
                                             Menu
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                            <a class="dropdown-item disabled" href="#">Followers</a>
-                                            <a class="dropdown-item disabled" href="#">Subscriptions</a>
+                                            <a class="dropdown-item" href="/accounts">Accounts</a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="/logout">Log out</a>
                                         </div>
