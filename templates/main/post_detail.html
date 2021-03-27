@@ -28,6 +28,15 @@
                                         <h3>{{ post.like_count }}</h3>
                                     </div>
                                 </a>
+                                {% if post.account_id == session['account'][0] %}
+                                <div class="mt-3">
+                                    <a href="{{ post.id }}/edit">
+                                        <button class="btn btn-primary" style="background-color: white; color: black;">
+                                            Edit
+                                        </button>
+                                    </a>
+                                </div>
+                                {% endif %}
                                 <script>
                                     let like = document.querySelector("#like");
                                     let post_id = document.querySelector("[name=post_id]");
