@@ -60,6 +60,35 @@
                                     <a href="https://preview.colorlib.com/theme/meranda/contact.html"
                                         class="nav-link text-left">Contact</a>
                                 </li>
+                                <li>
+                                    {% if session['logged_in'] %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" type="button"
+                                            id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                            aria-expanded="false">
+                                            Menu
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                            <a class="dropdown-item disabled" href="#">Followers</a>
+                                            <a class="dropdown-item disabled" href="#">Subscriptions</a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="/logout">Log out</a>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <a href="/login">
+                                        <button class="btn btn-primary" type="button">
+                                            Sign in
+                                        </button>
+                                    </a>
+                                    <a href="/signup">
+                                        <div class="btn"
+                                            style="color: black; border: 1px black solid; background: #fff;">
+                                            Sign up
+                                        </div>
+                                    </a>
+                                    {% endif %}
+                                </li>
                             </ul>
                         </nav>
                     </div>
