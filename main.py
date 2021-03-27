@@ -150,7 +150,11 @@ def account_list():
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     accounts = execute_query_param(conn, (account_id,), 
-        "SELECT * FROM accounts WHERE id!=? ORDER BY id DESC"
+        '''SELECT a.id id, a.name name, i.path path
+        FROM accounts a, images i
+        WHERE a.image_id = i.id
+        AND a.id!=?
+        ORDER BY id DESC'''
     ).fetchall()
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 

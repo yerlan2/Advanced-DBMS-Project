@@ -3,12 +3,36 @@
 {% block title %}Home{% endblock title %}
 
 {% block body %}
-<div class="accounts">
-    {% for account in accounts %}
-    <a href="/account/{{ account.id }}">
-        {{ account.name }}
-    </a>
-    {% endfor %}
-</div>
+
+<body data-spy="scroll" data-target=".site-navbar-target" data-offset="300" data-aos-easing="slide"
+    data-aos-duration="800" data-aos-delay="0">
+    <div class="site-wrap">
+        {% include 'main/header.html' %}
+
+        <div class="site-section">
+            {% if accounts|length == 0 %}
+
+            <div class="d-flex justify-content-center align-items-center flex-column mt-3">
+                <img width="500px"
+                    src="https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/k-9-m-185_0.jpg?w=1000&dpr=1&fit=default&crop=default&q=65&vib=3&con=3&usm=15&bg=F4F4F3&ixlib=js-2.2.1&s=bc7e278b8b9e1ef5a6dcdd64f1574a63"
+                    alt="crying" style="border-radius: 50%;">
+                <span class="mt-5">No Data.</span>
+                <a href="/accounts">Start following someone</a>.
+            </div>
+
+            {% else %}
+
+            {% for account in accounts %}
+            <a href="/account/{{ account.id }}" class="m-4">
+                <img src="{{ account.path }}" alt="Image" class="img-fluid mr-3"
+                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                <span style="color: black; font-weight: 500;">{{ account.name }}</p>
+            </a>
+            {% endfor %}
+
+            {% endif %}
+        </div>
+    </div>
+</body>
 
 {% endblock body %}
