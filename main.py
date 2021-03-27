@@ -103,7 +103,6 @@ def post_detail(id):
     if session.get('logged_in'):
         account_id = session['account'][0]
         like_result = check_like(conn, id, account_id)
-        print('____like_result____', like_result)
     comments = execute_query_param(conn, (id,), """
         SELECT c.id as id, c.post_id as post_id, a.name as account_name, i.path image_path, c.content as content, c.added_date as added_date 
         FROM comments c, accounts a 
@@ -131,15 +130,12 @@ def check_like(conn, post_id, account_id):
 @app.route('/like', methods=['POST', 'GET'])
 def like():
     if request.method == "POST":
-        if not session.get('logged_in'):
-            # return redirect(url_for("login", next=request.full_path))
-            return redirect("login")
         account_id = session['account'][0]
         post_id = request.form['post_id']
         conn = get_db()
         if not check_like(conn, post_id, account_id):
             with conn:
-                _ = execute_commit(conn, (post_id, account_id), "INSERT INTO likes(post_id, account_id) VALUES(?,?)")
+                execute_commit(conn, (post_id, account_id), "INSERT INTO likes(post_id, account_id) VALUES(?,?)")
                 execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count + 1 WHERE id = ?")
             return redirect(f"/post/{post_id}") 
 
@@ -147,9 +143,6 @@ def like():
 @app.route('/remove_like', methods=['POST', 'GET'])
 def remove_like():
     if request.method == "POST":
-        if not session.get('logged_in'):
-            return redirect("/login")
-            # return redirect(url_for('login', next=request.full_path))
         account_id = session['account'][0]
         post_id = request.form['post_id']
         conn = get_db()
@@ -379,7 +372,6 @@ def login():
             session['account'] = account
             session['logged_in'] = True
             next_url = request.args.get("next")
-            print(next_url)
             if next_url:
                 return redirect(next_url)
             return redirect("/")

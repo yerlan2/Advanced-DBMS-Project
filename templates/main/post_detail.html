@@ -15,19 +15,24 @@
                     <div class="col-1 mr-auto">
                         <div>
                             <div class="follow-btn">
+
+                            {% if session['logged_in'] %}
                                 {% if check_like and post.like_count > 0 %}
-                                <form action="{{ url_for('remove_like') }}" method="post">
-                                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                                    <button style="border: 0px; background-color: white;">❤</button>
-                                    {{ post.like_count }}
-                                </form>
+                                    <form action="{{ url_for('remove_like') }}" method="post">
+                                        <button style="border: 0px; background-color: white;">❤</button>
                                 {% else %}
-                                <form action="{{ url_for('like') }}" method="post">
-                                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                                    <button style="border: 0px; background-color: white;">🤍</button>
-                                    {{ post.like_count }}
-                                </form>
+                                    <form action="{{ url_for('like') }}" method="post">
+                                        <button style="border: 0px; background-color: white;">🤍</button>
                                 {% endif %}
+                                        <input type="hidden" name="post_id" value="{{ post.id }}">
+                                        {{ post.like_count }}
+                                    </form>
+                            {% else %}
+                                <a href="{{ url_for('login', next=request.full_path) }}">
+                                    🤍{{ post.like_count }}
+                                </a>
+                            {% endif %}
+
                             </div>
                         </div>
                         <div>👁‍🗨 {{ post.view_count }}</div>
