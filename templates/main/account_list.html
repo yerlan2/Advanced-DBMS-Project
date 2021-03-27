@@ -1,6 +1,6 @@
 {% extends 'index.html' %}
 
-{% block title %}Home{% endblock title %}
+{% block title %}{{ url_for(request.endpoint)[1:]|title }}{% endblock title %}
 
 {% block body %}
 
@@ -17,14 +17,14 @@
                     src="https://img.rawpixel.com/s3fs-private/rawpixel_images/website_content/k-9-m-185_0.jpg?w=1000&dpr=1&fit=default&crop=default&q=65&vib=3&con=3&usm=15&bg=F4F4F3&ixlib=js-2.2.1&s=bc7e278b8b9e1ef5a6dcdd64f1574a63"
                     alt="No data" style="border-radius: 50%;">
                 <span class="mt-5">No Data.</span>
-                <a href="/accounts">Start following someone</a>.
+                <a href="/accounts">Start connection with someone</a>
             </div>
 
             {% else %}
 
             <div class="d-flex justify-content-center align-items-center flex-column mt-3">
                 <div class="d-flex justify-content-center align-items-start flex-column">
-                    <h2 class="mb-5">Followers</h2>
+                    <h2 class="mb-5">{{ url_for(request.endpoint)[1:]|title }}</h2>
 
                     <div>
                         {% for account in accounts %}
@@ -51,7 +51,6 @@
                         </div>
                         {% endfor %}
                     </div>
-
 
                 </div>
 
