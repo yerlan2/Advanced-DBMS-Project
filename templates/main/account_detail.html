@@ -5,14 +5,16 @@
 {% block body %}
     <a href="/">Home</a>
 
+    <h2>{{ account.name }}</h2>
+
     {% if check_follow %}
     <form action="{{ url_for('unfollow') }}" method="post">
-        <input type="hidden" name="author_id" value="{{ account_id }}">
+        <input type="hidden" name="author_id" value="{{ account.id }}">
         <button>Unfollow</button>
     </form>
     {% else %}
     <form action="{{ url_for('follow') }}" method="post">
-        <input type="hidden" name="author_id" value="{{ account_id }}">
+        <input type="hidden" name="author_id" value="{{ account.id }}">
         <button>Follow</button>
     </form>
     {% endif %}

@@ -45,13 +45,12 @@ def execute_query_param(conn, param, query):
 
 
 @app.route('/')
-@app.route('/p/<int:page>')
-def index(page=1):
-    if not session.get('logged_in'):
-        return redirect("/login")
+def index():
+    p = request.args.get('p')
+    page = 0 if p is None else (int(p)-1)*10
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, ((page-1)*10,), """
+    posts = execute_query_param(conn, (page,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -62,15 +61,17 @@ def index(page=1):
         ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
+    conn.close()
     return render_template("main/home.html", categories=categories, posts=posts)
 
 
 @app.route('/category/<int:id>')
-@app.route('/category/<int:id>/p/<int:page>')
-def post_category(id, page=1):
+def post_category(id):
+    p = request.args.get('p')
+    page = 0 if p is None else (int(p)-1)*10
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, (id, (page-1)*10), """
+    posts = execute_query_param(conn, (id, page,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -82,6 +83,7 @@ def post_category(id, page=1):
         ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
+    conn.close()
     return render_template("main/home.html", categories=categories, posts=posts)
 
 
@@ -112,17 +114,20 @@ def post_detail(id):
         AND pi.post_id=p.id and p.id=? """
     ).fetchall()
     execute_commit(conn, (id,), "UPDATE posts SET view_count = view_count + 1 WHERE id = ?")
+    conn.close()
     return render_template("main/post_detail.html", post=post, comments=comments, images=images, categories=categories)
 
 
 @app.route('/search', methods=['GET'])
-@app.route('/search/p/<int:page>')
-def search(page=1):
+def search():
     if request.method == "GET":
         q = request.args.get('q')
+        p = request.args.get('p')
+        query = f"%{q}%"
+        page = 0 if p is None else (int(p)-1)*10
         conn = get_db()
         categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-        posts = execute_query_param(conn, (f"%{q}%", f"%{q}%", f"%{q}%", (page-1)*10), """
+        posts = execute_query_param(conn, (query, query, query, page), """
             SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
             FROM accounts a, categories c, posts p 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -136,19 +141,21 @@ def search(page=1):
             ORDER BY p.id DESC
             LIMIT 10 OFFSET ? """
         ).fetchall()
+        conn.close()
         return render_template("main/home.html", categories=categories, posts=posts)
 
 
 
 @app.route('/accounts')
-@app.route('/accounts/p/<int:page>')
-def account_list(page=1):
+def account_list():
     if not session.get('logged_in'):
         return redirect("/login")
     account_id = session['account'][0]
+    p = request.args.get('p')
+    page = 0 if p is None else (int(p)-1)*10
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    accounts = execute_query_param(conn, (account_id, (page-1)*10), """
+    accounts = execute_query_param(conn, (account_id, page,), """
         SELECT a.id id, a.name name, i.path path
         FROM accounts a
         LEFT JOIN images i ON a.image_id = i.id
@@ -156,16 +163,20 @@ def account_list(page=1):
         ORDER BY id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
+    conn.close()
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 
 
 @app.route('/account/<int:id>')
-@app.route('/account/<int:id>/p/<int:page>')
-def account_detail(id, page=1):
+def account_detail(id):
+    if not session.get('logged_in'):
+        return redirect("/login")
     follower_id = session['account'][0]
+    p = request.args.get('p')
+    page = 0 if p is None else (int(p)-1)*10
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, (id, (page-1)*10), """
+    posts = execute_query_param(conn, (id, page,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -177,7 +188,16 @@ def account_detail(id, page=1):
         ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
-    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id), categories=categories)
+    account = execute_query_param(conn, (id,), """
+        SELECT a.id id, a.name name, a.email email,  i.path image_path 
+        FROM accounts a
+        LEFT JOIN images i
+        ON a.image_id = i.id 
+        WHERE a.id=? """
+    ).fetchone()
+    follow_result = check_follow(conn, follower_id, id)
+    conn.close()
+    return render_template("main/account_detail.html", categories=categories, posts=posts, check_follow=follow_result, account=account)
 
 
 @app.route('/authors')
@@ -194,6 +214,7 @@ def author_list():
         AND s.follower_id=?
         ORDER BY a.id DESC """
     ).fetchall()
+    conn.close()
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 
 
@@ -211,21 +232,20 @@ def follower_list():
         AND s.author_id=?
         ORDER BY a.id DESC """
     ).fetchall()
+    conn.close()
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 
 
 def check_follow(conn, follower_id, author_id):
-    rows = execute_query_param(conn, (follower_id, author_id), """
-        SELECT * FROM subscriptions 
-        WHERE follower_id=? 
-        AND author_id=? """
-    ).fetchall()
+    rows = execute_query_param(conn, (follower_id, author_id), "SELECT * FROM subscriptions WHERE follower_id=? AND author_id=?").fetchall()
     return True if rows else False
 
 
 @app.route('/follow', methods=['POST', 'GET'])
 def follow():
     if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect("/login")
         follower_id = session['account'][0]
         author_id = request.form['author_id']
         conn = get_db()
@@ -238,6 +258,8 @@ def follow():
 @app.route('/unfollow', methods=['POST', 'GET'])
 def unfollow():
     if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect("/login")
         follower_id = session['account'][0]
         author_id = request.form['author_id']
         conn = get_db()
@@ -271,6 +293,8 @@ def add_comment():
 @app.route('/create-post', methods=['POST', 'GET'])
 def create_post():
     if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect("/login")
         account_id = session['account'][0]
         category_id = request.form['category_id']
         title = request.form['title']
@@ -292,8 +316,11 @@ def create_post():
                 )
         return redirect(f"/post/{post_id}")
     else:
+        if not session.get('logged_in'):
+            return redirect("/login")
         conn = get_db()
         categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        conn.close()
         return render_template("main/post_create.html", categories=categories)
 
 
@@ -307,6 +334,7 @@ def login():
         conn = get_db()
         account = (email, hashlib.sha1(password.encode()).hexdigest())
         account = execute_query_param_tuple(conn, account, "SELECT * FROM accounts WHERE email=? AND password=?").fetchone()
+        conn.close()
         if account:
             session['account'] = account
             session['logged_in'] = True
