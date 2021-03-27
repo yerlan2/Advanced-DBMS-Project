@@ -145,11 +145,10 @@ def search():
         return render_template("main/home.html", categories=categories, posts=posts)
 
 
-
 @app.route('/accounts')
 def account_list():
     if not session.get('logged_in'):
-        return redirect("/login")
+        return redirect(url_for('login', next=request.full_path))
     account_id = session['account'][0]
     p = request.args.get('p')
     page = 0 if p is None else (int(p)-1)*10
@@ -170,7 +169,7 @@ def account_list():
 @app.route('/account/<int:id>')
 def account_detail(id):
     if not session.get('logged_in'):
-        return redirect("/login")
+        return redirect(url_for('login', next=request.full_path))
     follower_id = session['account'][0]
     p = request.args.get('p')
     page = 0 if p is None else (int(p)-1)*10
@@ -203,7 +202,7 @@ def account_detail(id):
 @app.route('/authors')
 def author_list():
     if not session.get('logged_in'):
-        return redirect("/login")
+        return redirect(url_for('login', next=request.full_path))
     follower_id = session['account'][0]
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
@@ -221,7 +220,7 @@ def author_list():
 @app.route('/followers')
 def follower_list():
     if not session.get('logged_in'):
-        return redirect("/login")
+        return redirect(url_for('login', next=request.full_path))
     follower_id = session['account'][0]
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
@@ -245,7 +244,7 @@ def check_follow(conn, follower_id, author_id):
 def follow():
     if request.method == "POST":
         if not session.get('logged_in'):
-            return redirect("/login")
+            return redirect(url_for('login', next=request.full_path))
         follower_id = session['account'][0]
         author_id = request.form['author_id']
         conn = get_db()
@@ -259,7 +258,7 @@ def follow():
 def unfollow():
     if request.method == "POST":
         if not session.get('logged_in'):
-            return redirect("/login")
+            return redirect(url_for('login', next=request.full_path))
         follower_id = session['account'][0]
         author_id = request.form['author_id']
         conn = get_db()
@@ -273,28 +272,26 @@ def unfollow():
 def add_comment():
     if request.method == "POST":
         if not session.get('logged_in'):
-            return redirect("/login")
+            return redirect(url_for('login', next=request.full_path))
         post_id = request.form['post_id']
         content = request.form['content']
 
         err_msg = []
         conn = get_db()
-        conn.row_factory = sqlite3.Row
         account = session.get('account')
         if account:
             with conn:
                 comment = (post_id, account[0], content)
                 comment_id = execute_commit(conn, comment, "INSERT INTO comments(post_id, account_id, content) VALUES(?,?,?)")
             return redirect(f"/post/{post_id}")
-        else:
-            return redirect("/login")
+        return redirect(url_for('login', next=request.full_path))
 
 
 @app.route('/create-post', methods=['POST', 'GET'])
 def create_post():
     if request.method == "POST":
         if not session.get('logged_in'):
-            return redirect("/login")
+            return redirect(url_for('login', next=request.full_path))
         account_id = session['account'][0]
         category_id = request.form['category_id']
         title = request.form['title']
@@ -317,7 +314,7 @@ def create_post():
         return redirect(f"/post/{post_id}")
     else:
         if not session.get('logged_in'):
-            return redirect("/login")
+            return redirect(url_for('login', next=request.full_path))
         conn = get_db()
         categories = execute_query(conn, "SELECT * FROM categories").fetchall()
         conn.close()
@@ -330,17 +327,23 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        err_msg = []
         conn = get_db()
         account = (email, hashlib.sha1(password.encode()).hexdigest())
         account = execute_query_param_tuple(conn, account, "SELECT * FROM accounts WHERE email=? AND password=?").fetchone()
         conn.close()
+
+        err_msg = []
         if account:
             session['account'] = account
             session['logged_in'] = True
+            next_url = request.args.get("next")
+            print(next_url)
+            if next_url:
+                return redirect(next_url)
             return redirect("/")
         else:
-            return render_template("auth/login.html", err_msg=["Email or password incorrect."])
+            err_msg.append("Email or password is incorrect.")
+            return render_template("auth/login.html", err_msg=err_msg)
     else:
         return render_template("auth/login.html")
 
@@ -355,16 +358,16 @@ def signup():
 
         err_msg = []
         if password != password_confirm:
-            err_msg.append("Password incorrect.")
+            err_msg.append("Confirm password is incorrect.")
 
         if not err_msg:
             conn = get_db()
             with conn:
                 account = (username, email, hashlib.sha1(password.encode()).hexdigest())
                 try:
-                    account_id = execute_commit(conn, account, """ INSERT INTO accounts(name, email, password) VALUES(?,?,?) """)
+                    account_id = execute_commit(conn, account, "INSERT INTO accounts(name, email, password) VALUES(?,?,?)")
                 except sqlite3.IntegrityError as err:
-                    err_msg.append("Email exists.")
+                    err_msg.append("Email already exists.")
 
         if err_msg:
             return render_template("auth/signup.html", err_msg=err_msg)

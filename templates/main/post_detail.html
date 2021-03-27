@@ -73,7 +73,7 @@
                                 {% else %}
                                 <div class="form-group p-5 bg-light">
                                     <p class="d-flex">
-                                        <a href="/login">Log in</a>&nbsp;first to share your ideas about posts
+                                        <a href="{{ url_for('login', next=request.full_path) }}">Log in</a>&nbsp;first to share your ideas about posts
                                     </p>
                                 </div>
                                 {% endif %}
