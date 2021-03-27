@@ -50,13 +50,60 @@ def index():
     page = 0 if p is None else (int(p)-1)*10
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, (page,), """
+    if  session.get('logged_in'):
+        account_id = session['account'][0]
+        posts = execute_query_param(conn, (account_id, account_id, page,), """
+            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p, subscriptions s 
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            WHERE p.account_id=a.id 
+            AND p.category_id=c.id 
+            AND p.account_id=s.author_id
+            AND (
+                p.account_id=? 
+                OR 
+                s.author_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+            )
+            GROUP BY p.id
+            ORDER BY p.id DESC
+            LIMIT 10 OFFSET ? """
+        ).fetchall()
+    else:
+        posts = execute_query_param(conn, (page,), """
+            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p 
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            WHERE p.account_id=a.id 
+            AND p.category_id=c.id 
+            GROUP BY p.id
+            ORDER BY p.id DESC
+            LIMIT 10 OFFSET ? """
+        ).fetchall()
+    conn.close()
+    return render_template("main/home.html", categories=categories, posts=posts)
+
+
+@app.route('/other')
+def all_posts():
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.full_path))
+    p = request.args.get('p')
+    page = 0 if p is None else (int(p)-1)*10
+    conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+    account_id = session['account'][0]
+    posts = execute_query_param(conn, (account_id, account_id, page,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-        FROM accounts a, categories c, posts p 
+        FROM accounts a, categories c, posts p, subscriptions s 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
         LEFT JOIN images i ON pi.image_id = i.id 
         WHERE p.account_id=a.id 
         AND p.category_id=c.id 
+        AND p.account_id=s.author_id
+        AND p.account_id!=?
+        AND s.author_id NOT IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
         GROUP BY p.id
         ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
@@ -92,7 +139,7 @@ def post_detail(id):
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     post = execute_query_param(conn, (id,), """
-        SELECT p.id id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        SELECT p.id id, a.id account_id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM posts p, accounts a, categories c
         LEFT JOIN images i ON a.image_id = i.id
         WHERE p.account_id=a.id 
@@ -128,7 +175,7 @@ def check_like(conn, post_id, account_id):
 
 
 @app.route('/like', methods=['POST', 'GET'])
-def like_t():
+def like():
     account_id = session['account'][0]
     post_id = request.args.get('post_id')
     conn = get_db()
@@ -143,7 +190,7 @@ def like_t():
             execute_commit(conn, (post_id, account_id), "DELETE FROM likes WHERE post_id=? AND account_id=?")
             execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count - 1 WHERE id = ?")
         post = execute_query_param(conn, (post_id,), "SELECT like_count FROM posts WHERE id=?").fetchone()
-    return render_template("small_templates /like.html", post=post, check_like=like_result)
+    return render_template("small_templates/like.html", post=post, check_like=like_result)
 
 
 @app.route('/search', methods=['GET'])
