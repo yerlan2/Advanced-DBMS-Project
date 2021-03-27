@@ -19,21 +19,28 @@
                         </p>
                         <div class="d-flex mb-5">
                             {% for image in images[1:] %}
-                            <img src="{{ image.path }}" alt="Image" class="img-fluid" width="150px">
+                            <img src="{{ image.path }}" alt="Image" class="img-fluid mr-1" width="150px">
                             {% endfor %}
                         </div>
+                        {% else %}
+                        <p class="mb-1">
+                            <img src="https://schools.stlucie.k12.fl.us/tch/files/2020/08/No_Image_Available.png"
+                                alt="Image" class="img-bg"
+                                style="object-fit: none; object-position: center; height: 400px;">
+                        </p>
                         {% endif %}
                         <h1 class="mb-4">
                             {{ post.title }}
                         </h1>
                         <div class="post-meta d-flex mb-5">
                             <div class="bio-pic mr-3">
-                                <img src="{{ post.account_image_path }}" alt="Image" class="img-fluid"
+
+                                <img src="{{ post.image_path }}" alt="Image" class="img-fluid"
                                     style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
                             </div>
                             <div class="vcard">
                                 <span class="d-block">
-                                    <a href="/account/{{ post.account_id }}">
+                                    <a href="/account/{{ post.id }}">
                                         {{ post.account_name }}
                                     </a>
                                 </span>
@@ -79,7 +86,7 @@
                                 {% for comment in comments %}
                                 <li class="comment">
                                     <div class="vcard bio-pic">
-                                        <img src="{{ post.account_image_path }}" alt="Image placeholder"
+                                        <img src="{{ comment.image_path }}" alt="Image placeholder"
                                             style="border-radius: 50%; width: 50px; height: 50px;">
                                     </div>
                                     <div class="comment-body">

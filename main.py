@@ -90,16 +90,20 @@ def post_detail(id):
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     post = execute_query_param(conn, (id,), """
-        SELECT p.id id, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        SELECT p.id id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM posts p, accounts a, categories c
+        LEFT JOIN images i ON a.image_id = i.id
         WHERE p.account_id=a.id 
         AND p.category_id=c.id 
         AND p.id=? """
     ).fetchone()
     comments = execute_query_param(conn, (id,), """
-        SELECT c.id as id, c.post_id as post_id, a.name as account_name, c.content as content, c.added_date as added_date 
+        SELECT c.id as id, c.post_id as post_id, a.name as account_name, i.path image_path, c.content as content, c.added_date as added_date 
         FROM comments c, accounts a 
-        WHERE c.account_id=a.id AND c.post_id=? ORDER BY added_date DESC """
+        LEFT JOIN images i ON a.image_id = i.id
+        WHERE c.account_id=a.id 
+        AND c.post_id=? 
+        ORDER BY added_date DESC """
     ).fetchall()
     images = execute_query_param(conn, (id,), """
         SELECT i.id, i.path 
