@@ -54,7 +54,7 @@
                                 <img src="{{ post.image_path }}" alt="Image" class="img-fluid">
                             </p>
                             {% else %}
-                            <p class="mb-1">
+                            <p class="mb-1 d-flex justify-content-center" style="background-color: #f8f9fa;">
                                 <img src="https://schools.stlucie.k12.fl.us/tch/files/2020/08/No_Image_Available.png"
                                     alt="Image" class="img-bg"
                                     style="object-fit: none; object-position: center; height: 400px;">
@@ -85,7 +85,11 @@
                                     </span>
                                 </div>
                             </div>
-                            {{ post.content }}
+                            {% if post.content|length > 256 %}
+                            {{ post.content[:256] }}...
+                            {% else %}
+                            {{ post.content[:256] }}
+                            {% endif %}
                             <div class="pt-2 mb-5">
                                 <p>Category: {{ post.category_name }}</p>
                             </div>

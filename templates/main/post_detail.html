@@ -33,14 +33,14 @@
                                     let post_id = document.querySelector("[name=post_id]");
                                     like.addEventListener('click', () => {
                                         fetch('/like?post_id=' + post_id.value)
-                                        .then(response => response.text())
-                                        .then(function (result) {
-                                            console.log(result);
-                                            like.innerHTML = result;
-                                        })
-                                        .catch((error) => {
-                                            console.error('Error:', error);
-                                        });
+                                            .then(response => response.text())
+                                            .then(function (result) {
+                                                console.log(result);
+                                                like.innerHTML = result;
+                                            })
+                                            .catch((error) => {
+                                                console.error('Error:', error);
+                                            });
                                     });
                                 </script>
                                 {% else %}
@@ -66,7 +66,7 @@
                             {% endfor %}
                         </div>
                         {% else %}
-                        <p class="mb-1">
+                        <p class="mb-1 d-flex justify-content-center" style="background-color: #f8f9fa;">
                             <img src="https://schools.stlucie.k12.fl.us/tch/files/2020/08/No_Image_Available.png"
                                 alt="Image" class="img-bg"
                                 style="object-fit: none; object-position: center; height: 400px;">
