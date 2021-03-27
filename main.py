@@ -56,9 +56,7 @@ def index(page=1):
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
         LEFT JOIN images i ON pi.image_id = i.id 
-        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
-        AND (i.id IS NULL OR i.id IS NOT NULL)
-        AND p.account_id=a.id 
+        WHERE p.account_id=a.id 
         AND p.category_id=c.id 
         GROUP BY p.id
         ORDER BY p.id DESC
@@ -77,9 +75,7 @@ def post_category(id, page=1):
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
         LEFT JOIN images i ON pi.image_id = i.id 
-        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
-        AND (i.id IS NULL OR i.id IS NOT NULL)
-        AND p.account_id=a.id 
+        WHERE p.account_id=a.id 
         AND p.category_id=c.id 
         GROUP BY p.id
         HAVING c.id=?
@@ -127,9 +123,7 @@ def search(page=1):
             FROM accounts a, categories c, posts p 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
             LEFT JOIN images i ON pi.image_id = i.id 
-            WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
-            AND (i.id IS NULL OR i.id IS NOT NULL)
-            AND p.account_id=a.id 
+            WHERE p.account_id=a.id 
             AND p.category_id=c.id 
             GROUP BY p.id
             HAVING LOWER(p.title) LIKE LOWER(?)
@@ -143,18 +137,20 @@ def search(page=1):
 
 
 @app.route('/accounts')
-def account_list():
+@app.route('/accounts/p/<int:page>')
+def account_list(page=1):
     if not session.get('logged_in'):
         return redirect("/login")
     account_id = session['account'][0]
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    accounts = execute_query_param(conn, (account_id,), 
-        '''SELECT a.id id, a.name name, i.path path
-        FROM accounts a, images i
-        WHERE a.image_id = i.id
-        AND a.id!=?
-        ORDER BY id DESC'''
+    accounts = execute_query_param(conn, (account_id, (page-1)*10), """
+        SELECT a.id id, a.name name, i.path path
+        FROM accounts a
+        LEFT JOIN images i ON a.image_id = i.id
+        WHERE a.id!=?
+        ORDER BY id DESC
+        LIMIT 10 OFFSET ? """
     ).fetchall()
     return render_template("main/account_list.html", categories=categories, accounts=accounts)
 
@@ -170,9 +166,7 @@ def account_detail(id, page=1):
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
         LEFT JOIN images i ON pi.image_id = i.id 
-        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
-        AND (i.id IS NULL OR i.id IS NOT NULL)
-        AND p.account_id=a.id 
+        WHERE p.account_id=a.id 
         AND p.category_id=c.id 
         GROUP BY p.id
         HAVING a.id=?
