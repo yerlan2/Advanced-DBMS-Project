@@ -29,7 +29,11 @@
                                 </a>
                             </h2>
                             <p class="mb-3">
-                                {{ post.content }}
+                                {% if post.content|length > 256 %}
+                                    {{ post.content[:256] }}...
+                                {% else %}
+                                    {{ post.content[:256] }}
+                                {% endif %}
                             </p>
                             <div class="post-meta">
                                 <span class="d-block">

@@ -1,4 +1,4 @@
-from flask import Flask, g, request, session, render_template, redirect, url_for
+from flask import Flask, g, request, session, render_template, redirect, url_for, jsonify
 import sqlite3, hashlib, os
 
 app = Flask(__name__)
@@ -26,11 +26,14 @@ def execute_commit(conn, param, query):
     return cur.lastrowid
 
 
-def execute_query(conn, sql):
-    conn.row_factory = sqlite3.Row
+def execute_query_tuple(conn, sql):
     cur = conn.cursor()
     cur.execute(sql)
     return cur
+
+def execute_query(conn, sql):
+    conn.row_factory = sqlite3.Row
+    return execute_query_tuple(conn, sql)
 
 
 def execute_query_param_tuple(conn, param, query):
@@ -38,10 +41,10 @@ def execute_query_param_tuple(conn, param, query):
     cur.execute(query, param)
     return cur
 
-
 def execute_query_param(conn, param, query):
     conn.row_factory = sqlite3.Row
     return execute_query_param_tuple(conn, param, query)
+
 
 pagination_num=11
 post_num=10
@@ -292,18 +295,23 @@ def author_list():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.full_path))
     follower_id = session['account'][0]
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    accounts = execute_query_param(conn, (follower_id,), """
+    accounts = execute_query_param(conn, (follower_id, limit, offset,), """
         SELECT a.id id, a.name name, i.path image_path
         FROM subscriptions s, accounts a
         LEFT JOIN images i ON a.image_id = i.id
         WHERE s.author_id = a.id
         AND s.follower_id=?
-        ORDER BY a.id DESC """
+        ORDER BY a.id DESC
+        LIMIT ? OFFSET ? """
     ).fetchall()
     conn.close()
-    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+    next_pages_num = -(-len(accounts)//post_num)-1
+    return render_template("main/account_list.html", categories=categories, accounts=accounts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/followers')
@@ -311,18 +319,23 @@ def follower_list():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.full_path))
     follower_id = session['account'][0]
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    accounts = execute_query_param(conn, (follower_id,), """
+    accounts = execute_query_param(conn, (follower_id, limit, offset,), """
         SELECT a.id id, a.name name, i.path image_path
         FROM subscriptions s, accounts a
         LEFT JOIN images i ON a.image_id = i.id
         WHERE s.follower_id = a.id
         AND s.author_id=?
-        ORDER BY a.id DESC """
+        ORDER BY a.id DESC
+        LIMIT ? OFFSET ? """
     ).fetchall()
     conn.close()
-    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+    next_pages_num = -(-len(accounts)//post_num)-1
+    return render_template("main/account_list.html", categories=categories, accounts=accounts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 def check_follow(conn, follower_id, author_id):
@@ -480,7 +493,68 @@ def _jinja2_filter_datetime(datestr):
 
 @app.route('/admin')
 def admin():
-    return render_template("admin/dashboard.html")
+    conn = get_db()
+    accounts = execute_query(conn, "SELECT count(*) number FROM accounts ").fetchone()
+    comments = execute_query(conn, "SELECT count(*) number FROM comments ").fetchone()
+    posts = execute_query(conn, "SELECT count(*) number FROM posts ").fetchone()
+    
+    popular_accounts = execute_query_param(conn, (post_num,), """
+        SELECT a.name account_name, count(s.follower_id) followers_number
+        FROM subscriptions s, accounts a
+        WHERE  s.author_id=a.id
+        GROUP BY s.author_id
+        ORDER BY followers_number DESC, account_name
+        LIMIT ? """
+    ).fetchall()
+
+    categories_pie_chart = execute_query_tuple(conn, """
+        SELECT c.name name, count(p.id) posts_number
+        FROM posts p, categories c
+        WHERE p.category_id=c.id
+        GROUP BY category_id """
+    ).fetchall()
+    labels = []
+    values = []
+    for category in categories_pie_chart:
+        labels.append(category['name'])
+        values.append(category['posts_number'])
+    pie_data = {'labels': labels, 'values': values}
+
+    year_month__join_count = execute_query_tuple(conn, """
+        SELECT strftime('%Y-%m', created_date) Ym, count(id) join_count
+        FROM posts 
+        GROUP BY Ym
+        ORDER BY Ym DESC """
+    ).fetchall()
+    year_month = []
+    join_count = []
+    for post in year_month__join_count:
+        year_month.append(post['Ym'])
+        join_count.append(post['join_count'])
+    line_trace = {'x': year_month, 'y': join_count}
+
+    categories__like_count = execute_query_tuple(conn, """
+        SELECT c.name name, sum(like_count) like_count 
+        FROM posts p, categories c
+        WHERE p.category_id=c.id
+        GROUP BY p.category_id """
+    ).fetchall()
+    theta = []
+    r = []
+    for post in categories__like_count:
+        theta.append(post['name'])
+        r.append(post['like_count'])
+    radar_data = {'theta': theta, 'r': r}
+
+    popular_posts = execute_query_param(conn, (post_num,), """
+        SELECT p.title title, a.name account_name, strftime('%Y-%m-%d', created_date) created_date
+        FROM posts p, accounts a
+        WHERE p.account_id=a.id
+        ORDER BY p.like_count + p.view_count DESC
+        LIMIT ? """
+    ).fetchall()
+
+    return render_template("admin/dashboard.html", accounts=accounts, comments=comments, posts=posts, popular_accounts=popular_accounts, pie_data=pie_data, line_trace=line_trace, radar_data=radar_data, popular_posts=popular_posts)
 
 
 if __name__=="__main__":

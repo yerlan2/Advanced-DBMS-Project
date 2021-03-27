@@ -33,14 +33,14 @@
                                     let post_id = document.querySelector("[name=post_id]");
                                     like.addEventListener('click', () => {
                                         fetch('/like?post_id=' + post_id.value)
-                                            .then(response => response.text())
-                                            .then(function (result) {
-                                                console.log(result);
-                                                like.innerHTML = result;
-                                            })
-                                            .catch((error) => {
-                                                console.error('Error:', error);
-                                            });
+                                        .then(response => response.text())
+                                        .then(function (result) {
+                                            console.log(result);
+                                            like.innerHTML = result;
+                                        })
+                                        .catch((error) => {
+                                            console.error('Error:', error);
+                                        });
                                     });
                                 </script>
                                 {% else %}

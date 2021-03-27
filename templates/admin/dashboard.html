@@ -13,6 +13,33 @@
 
     <script defer src='https://cdn.plot.ly/plotly-latest.min.js'></script>
     <script defer>const color = 'rgb(' + 0 + ',' + 0 + ',' + 0 + ')';</script>
+    <script defer>
+        const pie_python = {{ pie_data|tojson }};
+        const pie_data = [{
+            values: pie_python['values'],
+            labels: pie_python['labels'],
+            hoverinfo: 'label+percent',
+            hole: .4,
+            type: 'pie'
+        }];
+
+        const line_python = {{ line_trace|tojson }};
+        const line_trace = {
+            x: line_python['x'],
+            y: line_python['y'],
+            type: 'scatter',
+            marker: {color: color}
+        };
+
+        const radar_python = {{ radar_data|tojson }};
+        const radar_data = [{
+            type: 'scatterpolar',
+            r: radar_python['r'],
+            theta: radar_python['theta'],
+            fill: 'toself',
+            marker: {color: color}
+        }]
+    </script>
     <script defer src="{{ url_for('static', filename='admin_files/piechart.js') }}"></script>
     <script defer src="{{ url_for('static', filename='admin_files/linedraw.js') }}"></script>
     <script defer src="{{ url_for('static', filename='admin_files/radar.js') }}"></script>
@@ -36,15 +63,15 @@
             <div class="card-info">
                 <div class="card users d-flex align-items-center justify-content-center">
                     <i class="im im-users"></i>
-                    <p>85 Total Users</p>
+                    <p>{{ accounts.number }} Total Users</p>
                 </div>
                 <div class="card posts d-flex align-items-center justify-content-center">
                     <i class="im im-speech-bubble-comments"></i>
-                    <p>245 Total Comments</p>
+                    <p>{{ comments.number }} Total Comments</p>
                 </div>
                 <div class="card posts d-flex align-items-center justify-content-center">
                     <i class="im im-note-o"></i>
-                    <p>520 Total Posts</p>
+                    <p>{{ posts.number }} Total Posts</p>
                 </div>
             </div>
 
@@ -54,53 +81,18 @@
                 <div id='pieDiv'>
                     <!-- Plotly chart will be drawn inside this DIV -->
                 </div>
-
                 <table id="posts">
                     <caption>Popular accounts</caption>
                     <tr>
                         <th>Account name</th>
                         <th>Followers</th>
                     </tr>
-                    <tr>
-                        <td>Maria Anders</td>
-                        <td>250</td>
-                    </tr>
-                    <tr>
-                        <td>Christina Berglund</td>
-                        <td>230</td>
-                    </tr>
-                    <tr>
-                        <td>Francisco Chang</td>
-                        <td>215</td>
-                    </tr>
-                    <tr>
-                        <td>Roland Mendel</td>
-                        <td>205</td>
-                    </tr>
-                    <tr>
-                        <td>Maria Anders</td>
-                        <td>185</td>
-                    </tr>
-                    <tr>
-                        <td>Christina Berglund</td>
-                        <td>160</td>
-                    </tr>
-                    <tr>
-                        <td>Francisco Chang</td>
-                        <td>152</td>
-                    </tr>
-                    <tr>
-                        <td>Roland Mendel</td>
-                        <td>148</td>
-                    </tr>
-                    <tr>
-                        <td>Francisco Chang</td>
-                        <td>130</td>
-                    </tr>
-                    <tr>
-                        <td>Carlos Andera</td>
-                        <td>124</td>
-                    </tr>
+                    {% for popular_account in popular_accounts %}
+                        <tr>
+                            <td>{{ popular_account.account_name }}</td>
+                            <td>{{ popular_account.followers_number }}</td>
+                        </tr>
+                    {% endfor %}
                 </table>
             </div>
         </div>
@@ -123,56 +115,13 @@
                         <th>Author</th>
                         <th>Date</th>
                     </tr>
-                    <tr>
-                        <td>What is time?</td>
-                        <td>Maria Anders</td>
-                        <td>May 15</td>
-                    </tr>
-                    <tr>
-                        <td>Light speed</td>
-                        <td>Christina Berglund</td>
-                        <td>Jan 30</td>
-                    </tr>
-                    <tr>
-                        <td>Playing as soldier</td>
-                        <td>Francisco Chang</td>
-                        <td>Feb 05</td>
-                    </tr>
-                    <tr>
-                        <td>Science is much more</td>
-                        <td>Roland Mendel</td>
-                        <td>Sep 21</td>
-                    </tr>
-                    <tr>
-                        <td>What is time?</td>
-                        <td>Maria Anders</td>
-                        <td>May 15</td>
-                    </tr>
-                    <tr>
-                        <td>Light speed</td>
-                        <td>Christina Berglund</td>
-                        <td>Jan 30</td>
-                    </tr>
-                    <tr>
-                        <td>Playing as soldier</td>
-                        <td>Francisco Chang</td>
-                        <td>Feb 05</td>
-                    </tr>
-                    <tr>
-                        <td>Science is much more</td>
-                        <td>Roland Mendel</td>
-                        <td>Sep 21</td>
-                    </tr>
-                    <tr>
-                        <td>Ebay or Alibaba</td>
-                        <td>Francisco Chang</td>
-                        <td>Apr 03</td>
-                    </tr>
-                    <tr>
-                        <td>Talking with politics</td>
-                        <td>Roland Mendel</td>
-                        <td>Sep 24</td>
-                    </tr>
+                    {% for popular_post in popular_posts %}
+                        <tr>
+                            <td>{{ popular_post.title }}</td>
+                            <td>{{ popular_post.account_name }}</td>
+                            <td>{{ popular_post.created_date }}</td>
+                        </tr>
+                    {% endfor %}
                 </table>
             </div>
         </div>
