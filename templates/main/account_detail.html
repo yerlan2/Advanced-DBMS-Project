@@ -25,6 +25,7 @@
 
                             {{ account.name }}
                         </div>
+                        {% if session['account'][0] != account.id %}
                         <div class="follow-btn">
 
                             {% if check_follow %}
@@ -39,6 +40,7 @@
                             </form>
                             {% endif %}
                         </div>
+                        {% endif %}
                     </div>
                     <div class="col-lg-8 single-content">
                         {% if posts|length == 0 %}
