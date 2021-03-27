@@ -31,12 +31,12 @@
                         <div class="d-flex flex-row justify-content-md-between align-items-center"
                             style="min-width: 500px">
                             <a href="/account/{{ account.id }}">
-                                {% if not account.path %}
+                                {% if not account.image_path %}
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/450px-No_image_available.svg.png"
                                     alt="Image" class="img-fluid mr-3"
                                     style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
                                 {% else %}
-                                <img src="{{ account.path }}" alt="Image" class="img-fluid mr-3"
+                                <img src="{{ account.image_path }}" alt="Image" class="img-fluid mr-3"
                                     style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
                                 {% endif %}
 

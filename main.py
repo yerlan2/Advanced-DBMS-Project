@@ -128,29 +128,22 @@ def check_like(conn, post_id, account_id):
 
 
 @app.route('/like', methods=['POST', 'GET'])
-def like():
-    if request.method == "POST":
-        account_id = session['account'][0]
-        post_id = request.form['post_id']
-        conn = get_db()
+def like_t():
+    account_id = session['account'][0]
+    post_id = request.args.get('post_id')
+    conn = get_db()
+    like_result = False
+    post = 0
+    with conn:
         if not check_like(conn, post_id, account_id):
-            with conn:
-                execute_commit(conn, (post_id, account_id), "INSERT INTO likes(post_id, account_id) VALUES(?,?)")
-                execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count + 1 WHERE id = ?")
-            return redirect(f"/post/{post_id}") 
-
-
-@app.route('/remove_like', methods=['POST', 'GET'])
-def remove_like():
-    if request.method == "POST":
-        account_id = session['account'][0]
-        post_id = request.form['post_id']
-        conn = get_db()
-        if check_like(conn, post_id, account_id):
-            with conn:
-                execute_commit(conn, (post_id, account_id), "DELETE FROM likes WHERE post_id=? AND account_id=?")
-                execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count - 1 WHERE id = ?")
-            return redirect(f"/post/{post_id}")
+            execute_commit(conn, (post_id, account_id), "INSERT INTO likes(post_id, account_id) VALUES(?,?)")
+            execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count + 1 WHERE id = ?")
+            like_result = True
+        else:
+            execute_commit(conn, (post_id, account_id), "DELETE FROM likes WHERE post_id=? AND account_id=?")
+            execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count - 1 WHERE id = ?")
+        post = execute_query_param(conn, (post_id,), "SELECT like_count FROM posts WHERE id=?").fetchone()
+    return render_template("small_templates /like.html", post=post, check_like=like_result)
 
 
 @app.route('/search', methods=['GET'])
@@ -190,7 +183,7 @@ def account_list():
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     accounts = execute_query_param(conn, (account_id, page,), """
-        SELECT a.id id, a.name name, i.path path
+        SELECT a.id id, a.name name, i.path image_path
         FROM accounts a
         LEFT JOIN images i ON a.image_id = i.id
         WHERE a.id!=?
@@ -242,8 +235,9 @@ def author_list():
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     accounts = execute_query_param(conn, (follower_id,), """
-        SELECT a.id, a.name, a.email, a.password, a.image_id
+        SELECT a.id id, a.name name, i.path image_path
         FROM subscriptions s, accounts a
+        LEFT JOIN images i ON a.image_id = i.id
         WHERE s.author_id = a.id
         AND s.follower_id=?
         ORDER BY a.id DESC """
@@ -260,8 +254,9 @@ def follower_list():
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     accounts = execute_query_param(conn, (follower_id,), """
-        SELECT a.id, a.name, a.email, a.password, a.image_id
+        SELECT a.id id, a.name name, i.path image_path
         FROM subscriptions s, accounts a
+        LEFT JOIN images i ON a.image_id = i.id
         WHERE s.follower_id = a.id
         AND s.author_id=?
         ORDER BY a.id DESC """
@@ -310,7 +305,6 @@ def add_comment():
             return redirect(url_for('login', next=request.full_path))
         post_id = request.form['post_id']
         content = request.form['content']
-
         err_msg = []
         conn = get_db()
         account = session.get('account')
