@@ -22,21 +22,40 @@
 
             {% else %}
 
-            {% for account in accounts %}
-            <a href="/account/{{ account.id }}" class="m-4">
-                {% if not account.path %}
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/450px-No_image_available.svg.png"
-                    alt="Image" class="img-fluid mr-3"
-                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+            <div class="d-flex justify-content-center align-items-center flex-column mt-3">
+                <div class="d-flex justify-content-center align-items-start flex-column">
+                    <h2 class="mb-5">Followers</h2>
 
-                {% else %}
-                <img src="{{ account.path }}" alt="Image" class="img-fluid mr-3"
-                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
-                
-                {% endif %}
-                <span style="color: black; font-weight: 500;">{{ account.name }}</p>
-            </a>
-            {% endfor %}
+                    <div>
+                        {% for account in accounts %}
+                        <div class="d-flex flex-row justify-content-md-between align-items-center"
+                            style="min-width: 500px">
+                            <a href="/account/{{ account.id }}">
+                                {% if not account.path %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/450px-No_image_available.svg.png"
+                                    alt="Image" class="img-fluid mr-3"
+                                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                                {% else %}
+                                <img src="{{ account.path }}" alt="Image" class="img-fluid mr-3"
+                                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                                {% endif %}
+
+                                <span style="color: black; font-weight: 500;">{{ account.name }}</p>
+                            </a>
+                            <a href="/account/{{ account.id }}">
+                                <button class="btn mb-3"
+                                    style="color: black; border: 1px black solid; background: #fff;">
+                                    View profile
+                                </button>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+
+                </div>
+
+            </div>
 
             {% endif %}
         </div>

@@ -3,30 +3,97 @@
 {% block title %}Home{% endblock title %}
 
 {% block body %}
-    <a href="/">Home</a>
 
-    <h2>{{ account.name }}</h2>
+<body data-spy="scroll" data-target=".site-navbar-target" data-offset="300" data-aos-easing="slide"
+    data-aos-duration="800" data-aos-delay="0">
+    <div class="site-wrap">
+        {% include 'main/header.html' %}
 
-    {% if check_follow %}
-    <form action="{{ url_for('unfollow') }}" method="post">
-        <input type="hidden" name="author_id" value="{{ account.id }}">
-        <button>Unfollow</button>
-    </form>
-    {% else %}
-    <form action="{{ url_for('follow') }}" method="post">
-        <input type="hidden" name="author_id" value="{{ account.id }}">
-        <button>Follow</button>
-    </form>
-    {% endif %}
+        <div class="site-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 mr-auto">
+                        <div class="account-info mb-3">
+                            {% if not account.path %}
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/450px-No_image_available.svg.png"
+                                alt="Image" class="img-fluid mr-3"
+                                style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                            {% else %}
+                            <img src="{{ account.path }}" alt="Image" class="img-fluid mr-3"
+                                style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                            {% endif %}
 
-    <div class="posts">
-        {% for post in posts %}
-            <article>
-                <img src="{{ post.image_path }}" width="200px" alt="{{ post.image_id }}">
-                <a href="/post/{{ post.id }}">
-                    {{ post.title }} | {{ post.category_name }}
-                </a>
-            </article>
-        {% endfor %}
+                            {{ account.name }}
+                        </div>
+                        <div class="follow-btn">
+
+                            {% if check_follow %}
+                            <form action="{{ url_for('unfollow') }}" method="post">
+                                <input type="hidden" name="author_id" value="{{ account.id }}">
+                                <button class="btn btn-primary">Unfollow</button>
+                            </form>
+                            {% else %}
+                            <form action="{{ url_for('follow') }}" method="post">
+                                <input type="hidden" name="author_id" value="{{ account.id }}">
+                                <button class="btn btn-primary">Follow</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-8 single-content">
+                        {% if posts|length == 0 %}
+
+                        <h1>No posts.</h1>
+
+                        {% else %}
+
+                        {% for post in posts %}
+                        <div>
+                            {% if post.image_path %}
+                            <p class="mb-1">
+                                <img src="{{ post.image_path }}" alt="Image" class="img-fluid">
+                            </p>
+                            {% else %}
+                            <p class="mb-1">
+                                <img src="https://schools.stlucie.k12.fl.us/tch/files/2020/08/No_Image_Available.png"
+                                    alt="Image" class="img-bg"
+                                    style="object-fit: none; object-position: center; height: 400px;">
+                            </p>
+                            {% endif %}
+                            <h1 class="mb-4">
+                                {{ post.title }}
+                            </h1>
+                            <div class="post-meta d-flex mb-5">
+                                <div class="bio-pic mr-3">
+                                    <img src="{{ post.image_path }}" alt="Image" class="img-fluid"
+                                        style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
+                                </div>
+                                <div class="vcard">
+                                    <span class="d-block">
+                                        <a href="/account/{{ post.id }}">
+                                            {{ post.account_name }}
+                                        </a>
+                                    </span>
+                                    <span class="date-read">
+                                        {{ post.created_date|strftime }}
+                                    </span>
+                                </div>
+                            </div>
+                            {{ post.content }}
+                            <div class="pt-5">
+                                <p>Category: {{ post.category_name }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include 'main/footer.html' %}
     </div>
+</body>
+
 {% endblock body %}
