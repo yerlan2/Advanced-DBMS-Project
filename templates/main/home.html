@@ -32,11 +32,9 @@
                                 </span>
                                 <span class="date-read">
                                     {{ post.created_date|strftime }}
-                                    <span class="mx-1">•</span>
-                                    3 min read
                                 </span>
                             </div>
-                            <div>{{ post.category_name }}</div>
+                            <div>Category: {{ post.category_name }}</div>
                             <div>❤ {{ post.like_count }}</div>
                             <div>👁‍🗨 {{ post.view_count }}</div>
                         </div>

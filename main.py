@@ -121,7 +121,14 @@ def select_account_post(conn, page, account_id):
 
 
 def select_post(conn, post_id):
-    sql = ''' SELECT * FROM posts WHERE id=? '''
+    sql = '''
+        SELECT p.id id, a.name account_name, i.path account_image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        FROM posts p, accounts a, categories c, images i
+        WHERE p.account_id=a.id 
+        AND p.category_id=c.id 
+        AND a.image_id=i.id 
+        AND p.id=?
+        '''
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute(sql, (post_id,))
@@ -380,7 +387,7 @@ def logout():
 def _jinja2_filter_datetime(datestr):
     from datetime import date
 
-    date_time = date.fromisoformat(datestr)
+    date_time = date.fromisoformat(datestr[:10])
     date_time_obj = date_time.strftime("%b %d")
     return date_time_obj
 

@@ -1,6 +1,6 @@
 {% extends 'index.html' %}
 
-{% block title %}Home{% endblock title %}
+{% block title %}Post detail{% endblock title %}
 
 {% block body %}
 
@@ -17,7 +17,7 @@
                             <img src="{{ images[0].path }}" alt="Image" class="img-fluid">
                         </p>
                         <div class="d-flex mb-5">
-                            {% for image in images %}
+                            {% for image in images[1:] %}
                             <img src="{{ image.path }}" alt="Image" class="img-fluid" width="150px">
                             {% endfor %}
                         </div>
@@ -26,64 +26,67 @@
                         </h1>
                         <div class="post-meta d-flex mb-5">
                             <div class="bio-pic mr-3">
-                                <img src="./post_detail/person_1.jpg" alt="Image" class="img-fluidid">
+                                <img src="{{ post.account_image_path }}" alt="Image" class="img-fluid"
+                                    style="border-radius: 50%; min-width: 50px; width: 50px; height: 50px;">
                             </div>
                             <div class="vcard">
-                                <span class="d-block"><a
-                                        href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Dave
-                                        Rogers</a> in <a
-                                        href="https://preview.colorlib.com/theme/meranda/blog-single.html#">News</a></span>
-                                <span class="date-read">Jun 14 <span class="mx-1">•</span> 3 min read</span>
+                                <span class="d-block">
+                                    <a href="/account/{{ post.account_id }}">
+                                        {{ post.account_name }}
+                                    </a>
+                                </span>
+                                <span class="date-read">
+                                    {{ post.created_date|strftime }}
+                                </span>
                             </div>
                         </div>
                         {{ post.content }}
                         <div class="pt-5">
-                            <p>Categories: <a
-                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Design</a>, <a
-                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">Events</a> Tags:
-                                <a href="https://preview.colorlib.com/theme/meranda/blog-single.html#">#html</a>, <a
-                                    href="https://preview.colorlib.com/theme/meranda/blog-single.html#">#trends</a>
-                            </p>
+                            <p>Category: {{ post.category_name }}</p>
                         </div>
                         <div class="pt-5">
                             <div class="section-title">
-                                <h2 class="mb-5">6 Comments</h2>
+                                <h2 class="mb-5">{{ comments|length }} Comments</h2>
                             </div>
                             <ul class="comment-list">
+                                {% for comment in comments %}
                                 <li class="comment">
-                                    <div class="vcard bio">
-                                        <img src="./post_detail/person_1.jpg" alt="Image placeholder">
+                                    <div class="vcard bio-pic">
+                                        <img src="{{ post.account_image_path }}" alt="Image placeholder"
+                                            style="border-radius: 50%; width: 50px; height: 50px;">
                                     </div>
                                     <div class="comment-body">
-                                        <h3>Jean Doe</h3>
-                                        <div class="meta">January 9, 2018 at 2:21pm</div>
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Pariatur quidem
-                                            laborum necessitatibus, ipsam impedit vitae autem, eum officia, fugiat saepe
-                                            enim sapiente iste iure! Quam voluptas earum impedit necessitatibus, nihil?
-                                        </p>
+                                        <h3>{{ comment.account_name }}</h3>
+                                        <div class="meta">{{ comment.added_date|strftime }}</div>
+                                        <p>{{ comment.content }}</p>
                                     </div>
                                 </li>
+                                {% endfor %}
                             </ul>
 
                             <div class="comment-form-wrap pt-5">
                                 <div class="section-title">
                                     <h2 class="mb-5">Leave a comment</h2>
                                 </div>
-                                <div class="form-group p-5 bg-light">
-                                    <p class="d-flex"><a href="/login">Log in</a>&nbsp;first to share your ideas about
-                                        posts</p>
-                                </div>
-                                <form action="https://preview.colorlib.com/theme/meranda/blog-single.html#"
-                                    class="p-5 bg-light">
+                                {% if session['logged_in'] %}
+                                <form action="{{ url_for('add_comment') }}" method="post" class="p-5 bg-light">
                                     <div class="form-group">
+                                        <input type="hidden" name="post_id" value="{{ post.id }}">
                                         <label for="message">Message</label>
-                                        <textarea name="" id="message" cols="30" rows="10"
+                                        <textarea name="content" id="message" cols="30" rows="10"
                                             class="form-control"></textarea>
                                     </div>
                                     <div class="form-group">
                                         <input type="submit" value="Post Comment" class="btn btn-primary py-3">
                                     </div>
                                 </form>
+                                {% else %}
+                                <div class="form-group p-5 bg-light">
+                                    <p class="d-flex">
+                                        <a href="/login">Log in</a>&nbsp;first to share your ideas about posts
+                                    </p>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
