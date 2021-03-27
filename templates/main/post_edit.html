@@ -1,0 +1,64 @@
+{% extends 'index.html' %}
+
+{% block title %}Create post{% endblock title %}
+
+{% block body %}
+
+<body data-spy="scroll" data-target=".site-navbar-target" data-offset="300" data-aos-easing="slide"
+    data-aos-duration="800" data-aos-delay="0">
+    <div class="site-wrap">
+        {% include 'includes/header.html' %}
+
+        <div class="site-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1 mr-auto"></div>
+                    <div class="col-lg-8 single-content">
+                        <div class="comment-form-wrap pt-5 mb-5">
+                            <div class="section-title">
+                                <h2 class="mb-5">Add new post</h2>
+                            </div>
+                            <form method="POST" class="p-5 bg-light">
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <input type="hidden" name="post_acccount_id" value="{{ post.account_id }}">
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input name="title" id="title" placeholder="Express your thoughts in few words"
+                                        class="form-control" type="text" value="{{ post.title }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="content">Content</label>
+                                    <textarea name="content" id="content" placeholder="What do you think about?"
+                                        cols="30" rows="10" class="form-control" required>{{ post.content }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="images">Image urls</label>
+                                    <textarea name="images_paths" id="images"
+                                        placeholder="Write image urls inserting space between them" cols="30" rows="10"
+                                        class="form-control">{% for image in images %}{{ image.image_path }}
+
+{% endfor %}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Category</label>
+                                    <select name="category_id" class="form-control" required>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}" {% if post.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="submit" value="Post" class="btn btn-primary py-3">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-1 ml-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        {% include 'includes/footer.html' %}
+    </div>
+</body>
+{% endblock body %}

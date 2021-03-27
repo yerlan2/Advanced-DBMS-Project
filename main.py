@@ -1,4 +1,4 @@
-from flask import Flask, g, request, session, render_template, redirect, url_for, jsonify
+from flask import Flask, g, request, session, render_template, redirect, url_for
 import sqlite3, hashlib, os
 
 app = Flask(__name__)
@@ -421,6 +421,82 @@ def create_post():
         categories = execute_query(conn, "SELECT * FROM categories").fetchall()
         conn.close()
         return render_template("main/post_create.html", categories=categories)
+
+
+@app.route('/post/<int:id>/edit', methods=['POST', 'GET'])
+def update_post(id):
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        account_id = session['account'][0]
+        post_acccount_id = request.form['post_acccount_id']
+        if int(post_acccount_id) != int(account_id):
+            print(post_acccount_id, account_id)
+            return redirect("/")
+        category_id = request.form['category_id']
+        title = request.form['title']
+        content = request.form['content']
+        images_paths = request.form['images_paths'].split()
+        conn = get_db()
+        with conn:
+            post = (category_id, title, content, id)
+            execute_commit(conn, post, """
+                UPDATE posts 
+                SET category_id=?, title=?, content=? 
+                WHERE id=?"""
+            )
+            images = execute_query_param(conn, (id,), """
+                SELECT i.path image_path
+                FROM postimages pi, images i
+                WHERE pi.image_id=i.id
+                AND pi.post_id=? """
+            ).fetchall()
+            flag = False
+            print(images_paths, images)
+            if len(images_paths) == len(images):
+                for i in range(len(images)):
+                    if images_paths[i] != images[i]['image_path']:
+                        print(images_paths[i], images[i]['image_path'])
+                        flag = True
+            else: flag = True
+            if flag:
+                execute_commit(conn, (id,), """
+                    DELETE FROM images 
+                    WHERE id IN (
+                        SELECT pi.image_id
+                        FROM postimages pi, images i
+                        WHERE pi.image_id=i.id
+                        AND pi.post_id=?) """
+                )
+                execute_commit(conn, (id,), """
+                    DELETE FROM postimages 
+                    WHERE post_id IN (
+                        SELECT pi.post_id
+                        FROM postimages pi
+                        WHERE pi.post_id=?) """
+                )
+                for image_path in images_paths:
+                    image_id = execute_commit(conn, (image_path,), 
+                        "INSERT INTO images(path) VALUES(?)")
+                    execute_commit(conn, (id, image_id), 
+                        "INSERT INTO postimages(post_id, image_id) VALUES(?,?)")
+        return redirect(f"/post/{id}")
+    else:
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        conn = get_db()
+        post = execute_query_param(conn, (id,), "SELECT * FROM posts WHERE id=?").fetchone()
+        if post['account_id'] != session['account'][0]:
+            return redirect(f"/post/{id}")
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        images = execute_query_param(conn, (id,), """
+            SELECT pi.post_id, pi.image_id, i.path image_path
+            FROM postimages pi, images i
+            WHERE pi.image_id=i.id
+            AND pi.post_id=? """
+        ).fetchall()
+        conn.close()
+        return render_template("main/post_edit.html", categories=categories, post=post, images=images)
 
 
 @app.route('/login', methods=['POST', 'GET'])
