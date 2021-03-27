@@ -12,6 +12,26 @@
         <div class="site-section">
             <div class="container">
                 <div class="row">
+                    <div class="col-1 mr-auto">
+                        <div>
+                            <div class="follow-btn">
+                                {% if check_like and post.like_count > 0 %}
+                                <form action="{{ url_for('remove_like') }}" method="post">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <button style="border: 0px; background-color: white;">❤</button>
+                                    {{ post.like_count }}
+                                </form>
+                                {% else %}
+                                <form action="{{ url_for('like') }}" method="post">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <button style="border: 0px; background-color: white;">🤍</button>
+                                    {{ post.like_count }}
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>👁‍🗨 {{ post.view_count }}</div>
+                    </div>
                     <div class="col-lg-8 single-content">
                         {% if images|length %}
                         <p class="mb-1">
@@ -73,7 +93,8 @@
                                 {% else %}
                                 <div class="form-group p-5 bg-light">
                                     <p class="d-flex">
-                                        <a href="{{ url_for('login', next=request.full_path) }}">Log in</a>&nbsp;first to share your ideas about posts
+                                        <a href="{{ url_for('login', next=request.full_path) }}">Log in</a>&nbsp;first
+                                        to share your ideas about posts
                                     </p>
                                 </div>
                                 {% endif %}
@@ -99,6 +120,7 @@
                             </ul>
                         </div>
                     </div>
+                    <div class="col-1 ml-auto"></div>
                 </div>
             </div>
         </div>

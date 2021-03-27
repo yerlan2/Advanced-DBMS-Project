@@ -99,6 +99,11 @@ def post_detail(id):
         AND p.category_id=c.id 
         AND p.id=? """
     ).fetchone()
+    like_result = False
+    if session.get('logged_in'):
+        account_id = session['account'][0]
+        like_result = check_like(conn, id, account_id)
+        print('____like_result____', like_result)
     comments = execute_query_param(conn, (id,), """
         SELECT c.id as id, c.post_id as post_id, a.name as account_name, i.path image_path, c.content as content, c.added_date as added_date 
         FROM comments c, accounts a 
@@ -115,7 +120,44 @@ def post_detail(id):
     ).fetchall()
     execute_commit(conn, (id,), "UPDATE posts SET view_count = view_count + 1 WHERE id = ?")
     conn.close()
-    return render_template("main/post_detail.html", post=post, comments=comments, images=images, categories=categories)
+    return render_template("main/post_detail.html", post=post, check_like=like_result, comments=comments, images=images, categories=categories)
+
+
+def check_like(conn, post_id, account_id):
+    rows = execute_query_param(conn, (post_id, account_id), "SELECT * FROM likes WHERE post_id=? AND account_id=?").fetchall()
+    return True if rows else False
+
+
+@app.route('/like', methods=['POST', 'GET'])
+def like():
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            # return redirect(url_for("login", next=request.full_path))
+            return redirect("login")
+        account_id = session['account'][0]
+        post_id = request.form['post_id']
+        conn = get_db()
+        if not check_like(conn, post_id, account_id):
+            with conn:
+                _ = execute_commit(conn, (post_id, account_id), "INSERT INTO likes(post_id, account_id) VALUES(?,?)")
+                execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count + 1 WHERE id = ?")
+            return redirect(f"/post/{post_id}") 
+
+
+@app.route('/remove_like', methods=['POST', 'GET'])
+def remove_like():
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect("/login")
+            # return redirect(url_for('login', next=request.full_path))
+        account_id = session['account'][0]
+        post_id = request.form['post_id']
+        conn = get_db()
+        if check_like(conn, post_id, account_id):
+            with conn:
+                execute_commit(conn, (post_id, account_id), "DELETE FROM likes WHERE post_id=? AND account_id=?")
+                execute_commit(conn, (post_id,), "UPDATE posts SET like_count = like_count - 1 WHERE id = ?")
+            return redirect(f"/post/{post_id}")
 
 
 @app.route('/search', methods=['GET'])
