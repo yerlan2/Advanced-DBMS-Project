@@ -1,0 +1,23 @@
+<form method="get">
+{% if page > 1 %}
+    <button name="p" value="{{page-1}}"> Prev </button>
+{% endif %}
+{% if page > pagination_num//2 %}
+    {% if next_pages_num >= pagination_num//2 %}
+        {% for i in range(page, page+pagination_num) %}
+        <button name="p" value="{{i-pagination_num//2}}"> {{i-pagination_num//2}} </button>
+        {% endfor %}
+    {% else %}
+        {% for i in range(page+next_pages_num-pagination_num, page+next_pages_num) %}
+        <button name="p" value="{{i+1}}"> {{i+1}} </button>
+        {% endfor %}
+    {% endif %}
+{% else %}
+    {% for i in range(next_pages_num+page) %}
+    <button name="p" value="{{i+1}}"> {{i+1}} </button>
+    {% endfor %}
+{% endif %}
+{% if next_pages_num >= 1 %}
+    <button name="p" value="{{page+1}}"> Next </button>
+{% endif %}
+</form>

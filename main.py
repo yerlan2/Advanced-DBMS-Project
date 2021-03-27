@@ -43,16 +43,20 @@ def execute_query_param(conn, param, query):
     conn.row_factory = sqlite3.Row
     return execute_query_param_tuple(conn, param, query)
 
+pagination_num=11
+post_num=10
+
 
 @app.route('/')
 def index():
-    p = request.args.get('p')
-    page = 0 if p is None else (int(p)-1)*10
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     if  session.get('logged_in'):
         account_id = session['account'][0]
-        posts = execute_query_param(conn, (account_id, account_id, page,), """
+        posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
             SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
             FROM accounts a, categories c, posts p, subscriptions s 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -67,10 +71,10 @@ def index():
             )
             GROUP BY p.id
             ORDER BY p.id DESC
-            LIMIT 10 OFFSET ? """
+            LIMIT ? OFFSET ? """
         ).fetchall()
     else:
-        posts = execute_query_param(conn, (page,), """
+        posts = execute_query_param(conn, (limit, offset,), """
             SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
             FROM accounts a, categories c, posts p 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -79,22 +83,24 @@ def index():
             AND p.category_id=c.id 
             GROUP BY p.id
             ORDER BY p.id DESC
-            LIMIT 10 OFFSET ? """
+            LIMIT ? OFFSET ? """
         ).fetchall()
     conn.close()
-    return render_template("main/home.html", categories=categories, posts=posts)
+    next_pages_num = -(-len(posts)//post_num)-1
+    return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/other')
 def all_posts():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.full_path))
-    p = request.args.get('p')
-    page = 0 if p is None else (int(p)-1)*10
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     account_id = session['account'][0]
-    posts = execute_query_param(conn, (account_id, account_id, page,), """
+    posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM accounts a, categories c, posts p, subscriptions s 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -106,19 +112,21 @@ def all_posts():
         AND s.author_id NOT IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
         GROUP BY p.id
         ORDER BY p.id DESC
-        LIMIT 10 OFFSET ? """
+        LIMIT ? OFFSET ? """
     ).fetchall()
     conn.close()
-    return render_template("main/home.html", categories=categories, posts=posts)
+    next_pages_num = -(-len(posts)//post_num)-1
+    return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/category/<int:id>')
 def post_category(id):
-    p = request.args.get('p')
-    page = 0 if p is None else (int(p)-1)*10
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, (id, page,), """
+    posts = execute_query_param(conn, (id, limit, offset,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
         FROM accounts a, categories c, posts p 
         LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -128,10 +136,11 @@ def post_category(id):
         GROUP BY p.id
         HAVING c.id=?
         ORDER BY p.id DESC
-        LIMIT 10 OFFSET ? """
+        LIMIT ? OFFSET ? """
     ).fetchall()
     conn.close()
-    return render_template("main/home.html", categories=categories, posts=posts)
+    next_pages_num = -(-len(posts)//post_num)-1
+    return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/post/<int:id>')
@@ -197,12 +206,13 @@ def like():
 def search():
     if request.method == "GET":
         q = request.args.get('q')
-        p = request.args.get('p')
         query = f"%{q}%"
-        page = 0 if p is None else (int(p)-1)*10
+        page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+        offset = (page-1)*post_num
+        limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
         conn = get_db()
         categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-        posts = execute_query_param(conn, (query, query, query, page), """
+        posts = execute_query_param(conn, (query, query, query, limit, offset,), """
             SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
             FROM accounts a, categories c, posts p 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
@@ -214,10 +224,11 @@ def search():
             OR LOWER(p.content) LIKE LOWER(?)
             OR LOWER(c.name) LIKE LOWER(?)
             ORDER BY p.id DESC
-            LIMIT 10 OFFSET ? """
+            LIMIT ? OFFSET ? """
         ).fetchall()
         conn.close()
-        return render_template("main/home.html", categories=categories, posts=posts)
+        next_pages_num = -(-len(posts)//post_num)-1
+        return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/accounts')
@@ -225,20 +236,22 @@ def account_list():
     if not session.get('logged_in'):
         return redirect(url_for('login', next=request.full_path))
     account_id = session['account'][0]
-    p = request.args.get('p')
-    page = 0 if p is None else (int(p)-1)*10
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    accounts = execute_query_param(conn, (account_id, page,), """
+    accounts = execute_query_param(conn, (account_id, limit, offset,), """
         SELECT a.id id, a.name name, i.path image_path
         FROM accounts a
         LEFT JOIN images i ON a.image_id = i.id
         WHERE a.id!=?
         ORDER BY id DESC
-        LIMIT 10 OFFSET ? """
+        LIMIT ? OFFSET ? """
     ).fetchall()
     conn.close()
-    return render_template("main/account_list.html", categories=categories, accounts=accounts)
+    next_pages_num = -(-len(accounts)//post_num)-1
+    return render_template("main/account_list.html", categories=categories, accounts=accounts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
 
 @app.route('/account/<int:id>')
