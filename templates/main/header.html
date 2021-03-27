@@ -14,7 +14,9 @@
                 <form action="/search" class="search-form d-inline-block">
                     <div class="d-flex">
                         <input type="search" name="q" class="form-control" placeholder="Search...">
-                        <button type="submit" class="btn btn-secondary"><span class="icon-search"></span></button>
+                        <button type="submit" class="btn btn-secondary" style="background-color: #000;">
+                            <img src="{{ url_for('static', filename='images/search.png') }}" width="15">
+                        </button>
                     </div>
                 </form>
             </div>
