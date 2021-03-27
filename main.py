@@ -51,15 +51,18 @@ def index(page=1):
         return redirect("/login")
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    posts = execute_query_param(conn, ((page-1)*10,), '''
+    posts = execute_query_param(conn, ((page-1)*10,), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-        FROM posts p, postimages pi, images i, accounts a, categories c
-        WHERE p.id=pi.post_id 
-        AND pi.image_id=i.id 
+        FROM accounts a, categories c, posts p 
+        LEFT JOIN postimages pi ON pi.post_id = p.id 
+        LEFT JOIN images i ON pi.image_id = i.id 
+        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
+        AND (i.id IS NULL OR i.id IS NOT NULL)
         AND p.account_id=a.id 
         AND p.category_id=c.id 
-        GROUP BY pi.post_id
-        LIMIT 10 OFFSET ? '''
+        GROUP BY p.id
+        ORDER BY p.id DESC
+        LIMIT 10 OFFSET ? """
     ).fetchall()
     return render_template("main/home.html", categories=categories, posts=posts)
 
@@ -71,28 +74,30 @@ def post_category(id, page=1):
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     posts = execute_query_param(conn, (id, (page-1)*10), """
         SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-        FROM posts p, postimages pi, images i, accounts a, categories c
-        WHERE p.id=pi.post_id 
-        AND pi.image_id=i.id 
+        FROM accounts a, categories c, posts p 
+        LEFT JOIN postimages pi ON pi.post_id = p.id 
+        LEFT JOIN images i ON pi.image_id = i.id 
+        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
+        AND (i.id IS NULL OR i.id IS NOT NULL)
         AND p.account_id=a.id 
         AND p.category_id=c.id 
-        GROUP BY pi.post_id
+        GROUP BY p.id
         HAVING c.id=?
+        ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
     return render_template("main/home.html", categories=categories, posts=posts)
 
-    
+
 @app.route('/post/<int:id>')
 def post_detail(id):
     conn = get_db()
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     post = execute_query_param(conn, (id,), """
-        SELECT p.id id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-        FROM posts p, accounts a, categories c, images i
+        SELECT p.id id, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        FROM posts p, accounts a, categories c
         WHERE p.account_id=a.id 
         AND p.category_id=c.id 
-        AND a.image_id=i.id 
         AND p.id=? """
     ).fetchone()
     comments = execute_query_param(conn, (id,), """
@@ -108,6 +113,33 @@ def post_detail(id):
     ).fetchall()
     execute_commit(conn, (id,), "UPDATE posts SET view_count = view_count + 1 WHERE id = ?")
     return render_template("main/post_detail.html", post=post, comments=comments, images=images, categories=categories)
+
+
+@app.route('/search', methods=['GET'])
+@app.route('/search/p/<int:page>')
+def search(page=1):
+    if request.method == "GET":
+        q = request.args.get('q')
+        conn = get_db()
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        posts = execute_query_param(conn, (f"%{q}%", f"%{q}%", f"%{q}%", (page-1)*10), """
+            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p 
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
+            AND (i.id IS NULL OR i.id IS NOT NULL)
+            AND p.account_id=a.id 
+            AND p.category_id=c.id 
+            GROUP BY p.id
+            HAVING LOWER(p.title) LIKE LOWER(?)
+            OR LOWER(p.content) LIKE LOWER(?)
+            OR LOWER(c.name) LIKE LOWER(?)
+            ORDER BY p.id DESC
+            LIMIT 10 OFFSET ? """
+        ).fetchall()
+        return render_template("main/home.html", categories=categories, posts=posts)
+
 
 
 @app.route('/accounts')
@@ -128,20 +160,22 @@ def account_list():
 def account_detail(id, page=1):
     follower_id = session['account'][0]
     conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     posts = execute_query_param(conn, (id, (page-1)*10), """
-        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.created_date created_date, p.like_count like_count, p.view_count like_count 
-        FROM posts p, postimages pi, images i, accounts a, categories c
-        WHERE p.id=pi.post_id 
-        AND pi.image_id=i.id 
+        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        FROM accounts a, categories c, posts p 
+        LEFT JOIN postimages pi ON pi.post_id = p.id 
+        LEFT JOIN images i ON pi.image_id = i.id 
+        WHERE (pi.post_id IS NULL OR pi.post_id IS NOT NULL)
+        AND (i.id IS NULL OR i.id IS NOT NULL)
         AND p.account_id=a.id 
         AND p.category_id=c.id 
-        GROUP BY pi.post_id
+        GROUP BY p.id
         HAVING a.id=?
+        ORDER BY p.id DESC
         LIMIT 10 OFFSET ? """
     ).fetchall()
-    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
-    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id),
-        categories=categories)
+    return render_template("main/account_detail.html", posts=posts, account_id=id, check_follow=check_follow(conn, follower_id, id), categories=categories)
 
 
 @app.route('/authors')
@@ -232,6 +266,35 @@ def add_comment():
             return redirect("/login")
 
 
+@app.route('/create-post', methods=['POST', 'GET'])
+def create_post():
+    if request.method == "POST":
+        account_id = session['account'][0]
+        category_id = request.form['category_id']
+        title = request.form['title']
+        content = request.form['content']
+        images_paths = request.form['images_paths'].split()
+        post_id = None
+        conn = get_db()
+        with conn:
+            post = (account_id, category_id, title, content)
+            post_id = execute_commit(conn, post, 
+                "INSERT INTO posts(account_id, category_id, title, content) VALUES(?,?,?,?)"
+            )
+            for image_path in images_paths:
+                image_id = execute_commit(conn, (image_path,), 
+                    "INSERT INTO images(path) VALUES(?)"
+                )
+                execute_commit(conn, (post_id, image_id), 
+                    "INSERT INTO postimages(post_id, image_id) VALUES(?,?)"
+                )
+        return redirect(f"/post/{post_id}")
+    else:
+        conn = get_db()
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        return render_template("main/post_create.html", categories=categories)
+
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == "POST":
@@ -297,7 +360,6 @@ def _jinja2_filter_datetime(datestr):
 @app.route('/admin')
 def admin():
     return render_template("admin/dashboard.html")
-
 
 
 if __name__=="__main__":

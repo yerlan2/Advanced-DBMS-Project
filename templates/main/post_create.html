@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+
+{% block title %}Create post{% endblock title %}
+
+{% block body %}
+    <h2>Create post</h2>
+    <form method="POST">
+        <input type="text" name="title" placeholder="Title" required>
+        <textarea name="content" placeholder="Content"></textarea>
+        <select name="category_id" required>
+            <option disabled selected value> -- select a category -- </option>
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <textarea name="images_paths"></textarea>
+        <button>Create post</button>
+    </form>
+{% endblock body %}

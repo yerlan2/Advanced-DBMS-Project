@@ -13,6 +13,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-8 single-content">
+                        {% if images|length %}
                         <p class="mb-1">
                             <img src="{{ images[0].path }}" alt="Image" class="img-fluid">
                         </p>
@@ -21,6 +22,7 @@
                             <img src="{{ image.path }}" alt="Image" class="img-fluid" width="150px">
                             {% endfor %}
                         </div>
+                        {% endif %}
                         <h1 class="mb-4">
                             {{ post.title }}
                         </h1>
