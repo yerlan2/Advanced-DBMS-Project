@@ -1,23 +1,39 @@
-<form method="get">
-{% if page > 1 %}
-    <button name="p" value="{{page-1}}"> Prev </button>
-{% endif %}
-{% if page > pagination_num//2 %}
-    {% if next_pages_num >= pagination_num//2 %}
-        {% for i in range(page, page+pagination_num) %}
-        <button name="p" value="{{i-pagination_num//2}}"> {{i-pagination_num//2}} </button>
-        {% endfor %}
+<div class="d-flex justify-content-center align-items-center">
+
+    <form method="get">
+    {% if page > 1 %}
+        <button class="btn btn-primary" style="background-color: white; color: black;" name="p" value="{{page-1}}"> Prev </button>
+    {% endif %}
+    {% if page > pagination_num//2 %}
+        {% if next_pages_num >= pagination_num//2 %}
+            {% for i in range(page, page+pagination_num) %}
+                {% if i-pagination_num//2 == page %}
+                <button class="btn btn-primary" style="background-color: white; color: black;" name="p" value="{{i-pagination_num//2}}"> {{i-pagination_num//2}} </button>
+                {% else %}
+                <button class="btn btn-primary" name="p" value="{{i-pagination_num//2}}"> {{i-pagination_num//2}} </button>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            {% for i in range(page+next_pages_num-pagination_num, page+next_pages_num) %}
+                {% if i+1 == page %}
+                <button class="btn btn-primary" style="background-color: white; color: black;" name="p" value="{{i+1}}"> {{i+1}} </button>
+                {% else %}
+                <button class="btn btn-primary" name="p" value="{{i+1}}"> {{i+1}} </button>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     {% else %}
-        {% for i in range(page+next_pages_num-pagination_num, page+next_pages_num) %}
-        <button name="p" value="{{i+1}}"> {{i+1}} </button>
+        {% for i in range(next_pages_num+page) %}
+            {% if i+1 == page %}
+            <button class="btn btn-primary" style="background-color: white; color: black;" name="p" value="{{i+1}}"> {{i+1}} </button>
+            {% else %}
+            <button class="btn btn-primary" name="p" value="{{i+1}}"> {{i+1}} </button>
+            {% endif %}
         {% endfor %}
     {% endif %}
-{% else %}
-    {% for i in range(next_pages_num+page) %}
-    <button name="p" value="{{i+1}}"> {{i+1}} </button>
-    {% endfor %}
-{% endif %}
-{% if next_pages_num >= 1 %}
-    <button name="p" value="{{page+1}}"> Next </button>
-{% endif %}
-</form>
+    {% if next_pages_num >= 1 %}
+        <button class="btn btn-primary" style="background-color: white; color: black;" name="p" value="{{page+1}}"> Next </button>
+    {% endif %}
+    </form>
+
+</div>
