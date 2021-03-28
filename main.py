@@ -60,17 +60,22 @@ def index():
     if  session.get('logged_in'):
         account_id = session['account'][0]
         posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
-            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-            FROM accounts a, categories c, posts p, subscriptions s 
+            SELECT 
+                p.id id, i.id image_id, i.path image_path, 
+                a.name account_name, c.name category_name, 
+                p.title, p.content, 
+                p.created_date created_date, 
+                p.like_count, p.view_count 
+            FROM posts p, accounts a, categories c
             LEFT JOIN postimages pi ON pi.post_id = p.id 
             LEFT JOIN images i ON pi.image_id = i.id 
+            LEFT JOIN subscriptions s ON p.account_id=s.author_id
             WHERE p.account_id=a.id 
             AND p.category_id=c.id 
-            AND p.account_id=s.author_id
             AND (
                 p.account_id=? 
                 OR 
-                s.author_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+                p.account_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
             )
             GROUP BY p.id
             ORDER BY p.id DESC
@@ -104,15 +109,20 @@ def all_posts():
     categories = execute_query(conn, "SELECT * FROM categories").fetchall()
     account_id = session['account'][0]
     posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
-        SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-        FROM accounts a, categories c, posts p, subscriptions s 
+        SELECT 
+            p.id id, i.id image_id, i.path image_path, 
+            a.name account_name, c.name category_name, 
+            p.title, p.content, 
+            p.created_date created_date, 
+            p.like_count, p.view_count 
+        FROM posts p, accounts a, categories c
         LEFT JOIN postimages pi ON pi.post_id = p.id 
         LEFT JOIN images i ON pi.image_id = i.id 
+        LEFT JOIN subscriptions s ON p.account_id=s.author_id
         WHERE p.account_id=a.id 
         AND p.category_id=c.id 
-        AND p.account_id=s.author_id
         AND p.account_id!=?
-        AND s.author_id NOT IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+        AND p.account_id NOT IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
         GROUP BY p.id
         ORDER BY p.id DESC
         LIMIT ? OFFSET ? """
@@ -429,8 +439,8 @@ def update_post(id):
         if not session.get('logged_in'):
             return redirect(url_for('login', next=request.full_path))
         account_id = session['account'][0]
-        post_acccount_id = request.form['post_acccount_id']
-        if int(post_acccount_id) != int(account_id):
+        post_acccount_id = int(request.form['post_acccount_id']) if request.form['post_acccount_id'] else -1
+        if post_acccount_id != account_id:
             print(post_acccount_id, account_id)
             return redirect("/")
         category_id = request.form['category_id']
@@ -497,6 +507,53 @@ def update_post(id):
         ).fetchall()
         conn.close()
         return render_template("main/post_edit.html", categories=categories, post=post, images=images)
+
+
+@app.route('/post/<int:id>/delete', methods=['POST', 'GET'])
+def delete_post(id):
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        account_id = session['account'][0]
+        post_acccount_id = int(request.form['post_acccount_id']) if request.form['post_acccount_id'] else -1
+        if post_acccount_id != account_id:
+            return redirect("/")
+        conn = get_db()
+        with conn:
+            execute_commit(conn, (id,), """
+                DELETE FROM images 
+                WHERE id IN (
+                    SELECT pi.image_id
+                    FROM postimages pi, images i
+                    WHERE pi.image_id=i.id
+                    AND pi.post_id=?) """
+            )
+            execute_commit(conn, (id,), """
+                DELETE FROM postimages 
+                WHERE post_id IN (
+                    SELECT pi.post_id
+                    FROM postimages pi
+                    WHERE pi.post_id=?) """
+            )
+            execute_commit(conn, (id,), """
+                DELETE FROM likes 
+                WHERE post_id IN (
+                    SELECT post_id
+                    FROM likes
+                    WHERE post_id=?) """
+            )
+            execute_commit(conn, (id,), """
+                DELETE FROM comments 
+                WHERE post_id IN (
+                    SELECT post_id
+                    FROM comments
+                    WHERE post_id=?) """
+            )
+            execute_commit(conn, (id,), """
+                DELETE FROM posts
+                WHERE id=? """
+            )
+    return redirect("/")
 
 
 @app.route('/login', methods=['POST', 'GET'])

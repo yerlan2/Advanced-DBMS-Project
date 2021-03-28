@@ -30,7 +30,7 @@
                                 </a>
                                 {% if post.account_id == session['account'][0] %}
                                 <div class="mt-3">
-                                    <a href="{{ post.id }}/edit">
+                                    <a href="/post/{{ post.id }}/edit">
                                         <button class="btn btn-primary" style="background-color: white; color: black;">
                                             Edit
                                         </button>

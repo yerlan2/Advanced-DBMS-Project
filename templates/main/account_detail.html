@@ -63,7 +63,13 @@
                             </p>
                             {% endif %}
                             <h1 class="mb-4">
-                                <a href="/post/{{ post.id }}" style="color: black;">{{ post.title }}</a>
+                                <a href="/post/{{ post.id }}" style="color: black;">
+                                    {% if post.title|length > 96 %}
+                                    {{ post.title[:96] }}...
+                                    {% else %}
+                                    {{ post.title[:96] }}
+                                    {% endif %}
+                                </a>
                             </h1>
                             <div class="post-meta d-flex mb-5">
                                 <div class="bio-pic mr-3">

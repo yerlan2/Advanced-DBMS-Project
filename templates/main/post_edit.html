@@ -51,6 +51,12 @@
                                     <input type="submit" value="Post" class="btn btn-primary py-3">
                                 </div>
                             </form>
+                            <form action="/post/{{ post.id }}/delete" method="POST">
+                                <input type="hidden" name="post_acccount_id" value="{{ post.account_id }}">
+                                <div class="text-right mt-4">
+                                    <input type="submit" value="Delete" class="btn btn-primary py-3">
+                                </div>
+                            </form>
                         </div>
                     </div>
                     <div class="col-1 ml-auto"></div>

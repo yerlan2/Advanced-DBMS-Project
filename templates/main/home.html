@@ -25,7 +25,11 @@
                         <div class="contents">
                             <h2>
                                 <a href="/post/{{ post.id }}">
-                                    {{ post.title }}
+                                    {% if post.title|length > 96 %}
+                                    {{ post.title[:96] }}...
+                                    {% else %}
+                                    {{ post.title[:96] }}
+                                    {% endif %}
                                 </a>
                             </h2>
                             <p class="mb-3">
