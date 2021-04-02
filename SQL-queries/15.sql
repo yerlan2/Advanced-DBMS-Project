@@ -11,14 +11,11 @@ ON posts(title);
 CREATE VIEW IF NOT EXISTS v_sixteenth
 AS
 SELECT a.name
-  FROM comments c, posts p, likes l, subscriptions s, accounts a, postimages pi
- WHERE c.post_id = p.id
+  FROM subscriptions s, posts p, comments c, likes l, accounts a, images i
+ WHERE a.id = s.follower_id AND p.account_id = s.author_id
+   AND c.post_id = p.id
+   AND c.post_id = l.post_id AND c.account_id = l.account_id
    AND c.account_id = a.id
-   AND c.post_id = pi.post_id
-   AND c.post_id = l.post_id
-   AND c.account_id = l.account_id
-   AND s.follower_id = c.account_id
-   AND s.author_id = p.account_id
-   AND p.title = 'Golden Park'
-   AND pi.image_id != NULL
-   AND l.account_id != NULL;
+   AND a.image_id = i.id
+   AND a.name = 'Golden Park'
+   AND p.id = 1317;
