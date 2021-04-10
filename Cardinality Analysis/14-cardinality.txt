@@ -1,0 +1,47 @@
+SELECT COUNT(*)
+FROM likes l, posts p, categories c, accounts a
+WHERE l.post_id = p.id
+AND l.account_id = a.id
+AND p.category_id = c.id
+AND length(c.name) > 4;
+
+-- Execution plans
+    -- 1. ((likes ⋈ posts) ⋈ categories) ⋈ accounts
+    SELECT COUNT(*)
+    FROM accounts a JOIN (
+        categories c JOIN (
+            likes l JOIN posts p ON l.post_id = p.id
+        )
+        ON p.category_id = c.id
+        AND length(c.name) > 4
+    )
+    ON l.account_id = a.id;
+
+    -- 2. ((posts ⋈ categories) ⋈ likes) ⋈ accounts
+    SELECT COUNT(*)
+    FROM accounts a JOIN (
+        likes l JOIN (
+            posts p JOIN categories c
+            ON p.category_id = c.id AND length(c.name) > 4
+        )
+        ON l.post_id = p.id
+    )
+    ON l.account_id = a.id;
+
+    -- 3. ((likes ⋈ accounts) ⋈ posts) ⋈ categories
+    SELECT COUNT(*)
+    FROM categories c JOIN (
+        posts p JOIN (
+            likes l JOIN accounts a ON l.account_id = a.id
+        )
+        ON l.post_id = p.id
+    )
+    ON p.category_id = c.id AND length(c.name) > 4;
+
+-- Calculate the exact join cardinalities
+    -- 1. |T'| = 7501 + 5681 + 5681 = 18 863
+    -- 2. |T'| = 5665 + 5681 + 5681 = 17 027
+    -- 3. |T'| = 7501 + 7501 + 5681 = 20 683‬
+
+-- Fastest plan
+    -- Second plan
