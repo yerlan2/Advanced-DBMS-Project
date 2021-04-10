@@ -1,0 +1,31 @@
+
+-- Execution plans
+    --1
+        SELECT count(*)
+        FROM categories cg JOIN (likes l JOIN (posts p JOIN (comments cm JOIN postimages pm) ON p.id = cm.post_id AND p.id = pm.post_id) 
+        ON p.account_id = l.account_id) ON p.category_id = cg.id
+        WHERE (julianday('now') - julianday(p.created_date)) / 365 > 3
+        AND cg.name = "IT" OR "Music";
+    --2
+        SELECT count(*)
+        FROM postimages pm JOIN (posts p JOIN (comments cm JOIN (categories cg JOIN likes l))
+        ON p.id = cm.post_id AND p.category_id = cg.id AND p.account_id = l.account_id) ON p.id = pm.post_id
+        WHERE (julianday('now') - julianday(p.created_date)) / 365 > 3
+        AND cg.name = "IT" OR "Music";
+    --3
+        SELECT count(*)
+        FROM categories cg JOIN (comments cm JOIN (postimages pm JOIN (posts p JOIN likes l ON p.account_id = l.account_id) ON p.id = pm.post_id)
+        ON p.id = cm.post_id) ON p.category_id = cg.id
+        WHERE (julianday('now') - julianday(p.created_date)) / 365 > 3
+        AND cg.name = "IT" OR "Music";
+
+--Calculate the exact join cardinalities
+    --1
+        |T'| = 56250000 + 7500 + 7498 + 7498 + 3991 + 318 = 56 276 805 rows
+    --2
+        |T'| = 90000 + 675000000 + 7498 + 7498 + 3991 + 318 = 675 109 305 rows
+    --3
+        |T'| = 7562 + 7562 + 7498 + 7498 + 3991 + 318 = 34 429 rows 
+
+--Fastest plan
+    --Third plan

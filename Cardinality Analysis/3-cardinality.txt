@@ -1,0 +1,30 @@
+
+-- Execution plans
+    --1
+        SELECT count(*)
+        FROM posts p JOIN (likes l JOIN (subscriptions s JOIN accounts a ON a.id = s.follower_id)) ON p.account_id = a.id
+        WHERE p.title LIKE 'A%'
+        AND l.post_id = p.id 
+        AND (julianday('now') - julianday(p.created_date)) <= 7;
+    --2
+        SELECT count(*)
+        FROM accounts a JOIN (subscriptions s JOIN (posts p JOIN likes l ON l.post_id = p.id)) ON a.id = s.follower_id 
+        WHERE p.title LIKE 'A%'
+        AND p.account_id = a.id
+        AND (julianday('now') - julianday(p.created_date)) <= 7;
+    --3
+        SELECT count(*)
+        FROM subscriptions s JOIN (posts p JOIN (accounts a JOIN likes l) ON l.post_id = p.id AND p.account_id = a.id) ON a.id = s.follower_id 
+        WHERE p.title LIKE 'A%'
+        AND (julianday('now') - julianday(p.created_date)) <= 7;
+
+--Calculate the exact join cardinalities
+    --1
+        |T'| = 7498 + 56235000 + 55777500 + 4147500 + 531 = 116 168 029 rows
+    --2
+        |T'| = 7500 + 56235000 + 56235000 + 4258864 + 531 = 116 736 895 rows
+    --3
+        |T'| = 56250000 + 7500 + 7407 + 531 = 56 265 438 rows
+
+--Fastest plan
+    --Third plan

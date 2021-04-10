@@ -1,0 +1,31 @@
+
+-- Execution plans
+    --1
+        SELECT count(*)
+        FROM subscriptions s JOIN (accounts a JOIN (posts p JOIN (categories c JOIN images i) ON p.category_id = c.id) 
+        ON a.id = p.account_id AND a.image_id = i.id) ON a.id = s.author_id
+        WHERE p.title LIKE '%white%'
+        AND c.name = "Science";
+    --2
+        SELECT count(*)
+        FROM subscriptions s JOIN (images i JOIN (accounts a JOIN (posts p JOIN categories c ON p.category_id = c.id) ON a.id = p.account_id) 
+        ON a.image_id = i.id) ON a.id = s.author_id
+        AND c.name = "Science"
+        WHERE p.title LIKE '%white%'; 
+    --3
+        SELECT count(*)
+        FROM images i JOIN (posts p JOIN (categories c JOIN (subscriptions s JOIN accounts a ON a.id = s.author_id)) ON a.id = p.account_id AND p.category_id = c.id)
+        ON a.image_id = i.id
+        WHERE p.title LIKE '%white%'
+        AND c.name = "Science";
+
+--Calculate the exact join cardinalities
+    --1
+        |T'| = 90000 + 56250000 + 7500 + 7437 + 27 + 2 = 56 354 966 rows
+    --2
+        |T'| = 7500 + 7500 + 7500 + 7437 + 609 + 2 = 30 548 rows
+    --3
+        |T'| = 7498 + 89976 + 7437 + 7437 + 27 + 2 = 112 377 rows 
+
+--Fastest plan
+    --Second plan
