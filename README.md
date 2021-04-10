@@ -203,7 +203,7 @@ Every category has its own id, and every category name in the navigation bar in 
 
 To do this, we will join the "like" table with “post” and “account”, “category”. Find posts with categories name’s length more than 4, and in order to see the number of likes, we can check the “post.like_count” value. Then, output “post.like_count” value,  the column “like.account_id” value.
  
-15. Is the commentator of the post, which is called "Golden Park", and has a couple of pictures, liked the post and is he the follower of the author? If yes output the name of the commentator.
+15. Is the commentator of the post that has a couple of pictures liked the post and is he the follower of the author? If yes output the name of the commentator.
 
 We will join tables “comments”, “post”, “account”, “follow” and “postImage”. Then, If the value of “post.title” is “Golden Park” and If the commentator id exists in the “like.account_id” column, and If the commentator id exists in the “follow_id” output name of the commentator.
 

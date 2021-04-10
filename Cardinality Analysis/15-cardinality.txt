@@ -1,0 +1,54 @@
+SELECT COUNT(*)
+FROM comments c, likes l, postimages pi, subscriptions s, accounts a
+WHERE c.post_id = l.post_id AND c.account_id = l.account_id
+AND c.post_id = pi.post_id
+AND c.account_id = s.follower_id
+AND c.account_id = a.id;
+
+-- Execution plans
+    -- 1. (((comments ⋈ likes) ⋈ postimages) ⋈ subscriptions) ⋈ accounts
+    SELECT COUNT(*)
+    FROM accounts a JOIN (
+        subscriptions s JOIN (
+            postimages pi JOIN (
+                comments c JOIN likes l
+                ON c.post_id = l.post_id AND c.account_id = l.account_id
+            )
+            ON c.post_id = pi.post_id
+        )
+        ON c.account_id = s.follower_id
+    )
+    ON c.account_id = a.id;
+
+    -- 2. (((accounts ⋈ subscriptions) ⋈ postimages) ⋈ likes) ⋈ comments
+    SELECT COUNT(*)
+    FROM comments c JOIN (
+        likes l JOIN (
+            postimages pi JOIN (
+                accounts a JOIN subscriptions s
+            )
+        )
+    )
+    ON c.post_id = l.post_id AND c.account_id = l.account_id;
+
+    -- 3. (((comments ⋈ accounts) ⋈ subscriptions) ⋈ postimages) ⋈ likes
+    SELECT COUNT(*)
+    FROM likes l JOIN (
+        postimages pi JOIN (
+            subscriptions s JOIN (
+                comments c JOIN accounts a
+                ON c.account_id = a.id
+            )
+            ON c.account_id = s.follower_id
+        )
+        ON c.post_id = pi.post_id
+    )
+    ON c.post_id = l.post_id AND c.account_id = l.account_id;
+
+-- Calculate the exact join cardinalities
+    -- 1. |T'| = 2 + 3 + 2 + 2 = 9
+    -- 2. |T'| = 56 242 498 + 422 043 704 992‬ + 3 165 749 831 144 992 = 2,4e+19‬
+    -- 3. |T'| = 7500 + 7512 + 7455 + 2 = 22 469
+
+-- Fastest plan
+    -- First plan
