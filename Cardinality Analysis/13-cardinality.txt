@@ -1,0 +1,64 @@
+SELECT COUNT(*)
+FROM posts p, categories c, accounts a
+WHERE p.category_id = c.id
+AND p.account_id = a.id
+AND p.account_id IN (
+    SELECT s.author_id 
+    FROM subscriptions s, accounts a 
+    WHERE s.follower_id = a.id
+    AND a.name = 'Account#06103'
+)
+AND c.name = 'Sport';
+
+-- Execution plans
+    -- 1. (posts ⋈ categories) ⋈ accounts
+        SELECT COUNT(*)
+        FROM accounts a JOIN (
+            posts p JOIN categories c ON p.category_id = c.id
+            AND p.account_id IN (
+                SELECT s.author_id 
+                FROM subscriptions s, accounts a 
+                WHERE s.follower_id = a.id
+                AND a.name = 'Account#06103'
+            )
+            AND c.name = 'Sport'
+        )
+        ON p.account_id = a.id;
+
+    -- 2. (posts ⋈ accounts) ⋈ categories
+        SELECT COUNT(*)
+        FROM categories c JOIN (
+            posts p JOIN accounts a
+            ON p.account_id = a.id
+            AND p.account_id IN (
+                SELECT s.author_id 
+                FROM subscriptions s, accounts a 
+                WHERE s.follower_id = a.id
+                AND a.name = 'Account#06103'
+            )
+        )
+        ON p.category_id = c.id
+        AND c.name = 'Sport';
+
+    -- 3. (categories ⋈ accounts) ⋈ posts
+        SELECT COUNT(*)
+        FROM posts p JOIN (
+            categories c JOIN accounts a
+            ON c.name = 'Sport'
+        )
+        ON p.category_id = c.id
+        AND p.account_id = a.id
+        AND p.account_id IN (
+            SELECT s.author_id 
+            FROM subscriptions s, accounts a 
+            WHERE s.follower_id = a.id
+            AND a.name = 'Account#06103'
+        );
+
+-- Calculate the exact join cardinalities
+    -- 1. |T'| = 2 + 2 = 4
+    -- 2. |T'| = 11 + 2 = 13
+    -- 3. |T'| = 7501 + 2 = 7503
+
+-- Fastest plan
+    -- First plan

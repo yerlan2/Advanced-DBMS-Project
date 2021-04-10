@@ -1,0 +1,48 @@
+SELECT COUNT(*)
+FROM posts p, categories c, accounts a, images i
+WHERE p.category_id = c.id
+AND p.account_id = a.id
+AND a.image_id = i.id
+AND p.id = 1;
+
+-- Execution plans
+    -- 1. ((posts ⋈ categories) ⋈ accounts) ⋈ images
+        SELECT COUNT(*)
+        FROM images i JOIN (
+            accounts a JOIN (
+                posts p JOIN categories c ON p.category_id = c.id
+                AND p.id = 1
+            )
+            ON p.account_id = a.id
+        )
+        ON a.image_id = i.id;
+
+    -- 2. ((accounts ⋈ images) ⋈ categories) ⋈ posts
+        SELECT COUNT(*)
+        FROM posts p JOIN (
+            categories c JOIN (
+                accounts a JOIN images i ON a.image_id = i.id
+            )
+        )
+        ON p.category_id = c.id
+        AND p.account_id = a.id
+        AND p.id = 1;
+
+    -- 3. ((posts ⋈ accounts) ⋈ categories) ⋈ images
+        SELECT COUNT(*)
+        FROM images i JOIN (
+            categories c JOIN (
+                posts p JOIN accounts a ON p.account_id = a.id
+            )
+            ON p.category_id = c.id
+        )
+        ON a.image_id = i.id
+        AND p.id = 1;
+
+-- Calculate the exact join cardinalities
+    -- 1. |T'| = 1 + 1 + 1 = 3
+    -- 2. |T'| = 7500 + 90000 + 1 = 97501
+    -- 3. |T'| = 7501 + 7501 + 1 = 15003
+
+-- Fastest plan
+    -- First plan
