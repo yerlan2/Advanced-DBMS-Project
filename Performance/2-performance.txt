@@ -1,0 +1,46 @@
+SELECT p.id id,
+    i.id image_id,
+    i.path image_path,
+    a.name account_name,
+    c.name category_name,
+    p.title title,
+    p.content content,
+    p.created_date created_date,
+    p.like_count like_count,
+    p.view_count view_count
+FROM accounts a,
+    categories c,
+    posts p
+    LEFT JOIN postimages pi ON pi.post_id = p.id
+    LEFT JOIN images i ON pi.image_id = i.id
+WHERE p.account_id = a.id
+    AND p.category_id = c.id
+GROUP BY p.id
+HAVING a.id = 5
+ORDER BY p.id DESC
+LIMIT 10 OFFSET 0;
+
+1) 2.79293060303 ms (average time)
+
+2) Limit  (cost=926.89..2074.31 rows=10 width=76) (actual time=8.313..13.703 rows=10 loops=1)
+   ->  GroupAggregate  (cost=926.89..861493.16 rows=7500 width=76) (actual time=8.312..13.701 rows=10 loops=1)
+         Group Key: p.id
+         ->  Nested Loop  (cost=926.89..861230.66 rows=7500 width=795) (actual time=6.972..13.674 rows=11 loops=1)
+               Join Filter: (p.category_id = c.id)
+               Rows Removed by Join Filter: 114
+               ->  Nested Loop  (cost=926.89..845468.91 rows=7500 width=283) (actual time=6.957..13.645 rows=11 loops=1)                     Join Filter: (p.account_id = a.id)
+                     Rows Removed by Join Filter: 78086
+                     ->  Merge Left Join  (cost=926.89..1517.16 rows=7500 width=273) (actual time=5.065..5.078 rows=11 loops=1)
+                           Merge Cond: (p.id = pi.post_id)
+                           ->  Index Scan Backward using posts_pkey on posts p  (cost=0.28..459.32 rows=7500 width=234) (actual time=0.008..0.011 rows=11 loops=1)
+                           ->  Sort  (cost=926.60..945.35 rows=7500 width=43) (actual time=5.053..5.055 rows=11 loops=1)                                 Sort Key: pi.post_id DESC
+                                 Sort Method: quicksort  Memory: 778kB
+                                 ->  Hash Right Join  (cost=202.75..443.88 rows=7500 width=43) (actual time=1.230..3.417 rows=7500 loops=1)
+                                       Hash Cond: (i.id = pi.image_id)
+                                       ->  Seq Scan on images i  (cost=0.00..138.00 rows=7500 width=39) (actual time=0.010..0.481 rows=7500 loops=1)
+                                       ->  Hash  (cost=109.00..109.00 rows=7500 width=8) (actual time=1.182..1.182 rows=7500 loops=1)
+                                             Buckets: 8192  Batches: 1  Memory Usage: 357kB
+                                             ->  Seq Scan on postimages pi  (cost=0.00..109.00 rows=7500 width=8) (actual time=0.013..0.421 rows=7500 loops=1)-- Далее                 ->  Materialize  (cost=0.00..12.10 rows=140 width=520) (actual time=0.001..0.002 rows=11 loops=11)
+Planning Time: 5.008 ms
+Execution Time: 14.259 ms
+(27 rows)

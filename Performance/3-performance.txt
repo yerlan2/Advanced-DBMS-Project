@@ -1,0 +1,33 @@
+SELECT a.id,
+    a.name,
+    i.path
+FROM subscriptions s,
+    accounts a
+    LEFT JOIN images i ON a.image_id = i.id
+WHERE s.author_id = a.id
+    AND s.follower_id = 5594
+ORDER BY a.id DESC
+LIMIT 10 OFFSET 0;
+
+1) 2.39987373352 ms (average time)
+
+2) Limit  (cost=514.45..514.46 rows=2 width=53) (actual time=2.350..2.351 rows=2 loops=1)
+   ->  Sort  (cost=514.45..514.46 rows=2 width=53) (actual time=2.348..2.349 rows=2 loops=1)
+         Sort Key: a.id DESC
+         Sort Method: quicksort  Memory: 25kB
+         ->  Hash Right Join  (cost=348.30..514.44 rows=2 width=53) (actual time=1.659..2.342 rows=2 loops=1)
+               Hash Cond: (i.id = a.image_id)
+               ->  Seq Scan on images i  (cost=0.00..138.00 rows=7500 width=39) (actual time=0.009..0.368 rows=7500 loops=1)
+               ->  Hash  (cost=348.27..348.27 rows=2 width=22) (actual time=1.493..1.494 rows=2 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Hash Join  (cost=127.75..348.27 rows=2 width=22) (actual time=0.633..1.489 rows=2 loops=1)
+                           Hash Cond: (a.id = s.author_id)
+                           ->  Seq Scan on accounts a  (cost=0.00..183.00 rows=7500 width=22) (actual time=0.018..0.481 rows=7500 loops=1)
+                           ->  Hash  (cost=127.73..127.73 rows=2 width=4) (actual time=0.444..0.444 rows=2 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 ->  Seq Scan on subscriptions s  (cost=0.00..127.73 rows=2 width=4) (actual time=0.009..0.440 rows=2 loops=1)
+                                       Filter: (follower_id = 5594)
+                                       Rows Removed by Filter: 7496
+Planning Time: 0.234 ms
+Execution Time: 2.424 ms
+(19 rows)
