@@ -1,0 +1,28 @@
+SELECT COUNT(*)
+FROM accounts a LEFT JOIN images i ON a.image_id = i.id,
+    comments c
+WHERE c.account_id = a.id 
+AND c.post_id = 1;
+
+-- 1) 7.400655746459961 ms (average time)
+
+-- 2) 
+/*
+ Aggregate  (cost=683.47..683.48 rows=1 width=8) (actual time=6.003..6.007 rows=1 loops=1)
+   ->  Hash Right Join  (cost=517.32..683.46 rows=2 width=0) (actual time=3.364..6.000 rows=1 loops=1)
+         Hash Cond: (i.id = a.image_id)
+         ->  Seq Scan on images i  (cost=0.00..138.00 rows=7500 width=4) (actual time=0.011..1.353 rows=7500 loops=1)
+         ->  Hash  (cost=517.29..517.29 rows=2 width=4) (actual time=3.188..3.190 rows=1 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+               ->  Hash Join  (cost=296.77..517.29 rows=2 width=4) (actual time=1.168..3.187 rows=1 loops=1)
+                     Hash Cond: (a.id = c.account_id)
+                     ->  Seq Scan on accounts a  (cost=0.00..183.00 rows=7500 width=8) (actual time=0.006..1.033 rows=7500 loops=1)
+                     ->  Hash  (cost=296.75..296.75 rows=2 width=4) (actual time=0.991..0.992 rows=1 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                           ->  Seq Scan on comments c  (cost=0.00..296.75 rows=2 width=4) (actual time=0.920..0.987 rows=1 loops=1)
+                                 Filter: (post_id = 1)
+                                 Rows Removed by Filter: 7499
+ Planning Time: 0.295 ms
+ Execution Time: 6.042 ms
+(16 rows)
+*/

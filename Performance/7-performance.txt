@@ -1,0 +1,27 @@
+SELECT COUNT(*)
+FROM images i, postimages pi, posts p 
+WHERE i.id = pi.image_id 
+AND pi.post_id = p.id
+AND p.id = 1;
+
+-- 1) 4.799938201904297 ms (average time)
+
+-- 2) 
+/*
+ Aggregate  (cost=636.69..636.70 rows=1 width=8) (actual time=2.848..2.851 rows=1 loops=1)
+   ->  Nested Loop  (cost=127.78..636.69 rows=2 width=0) (actual time=0.875..2.846 rows=1 loops=1)
+         ->  Seq Scan on posts p  (cost=0.00..342.75 rows=1 width=4) (actual time=0.008..0.790 rows=1 loops=1)
+               Filter: (id = 1)
+               Rows Removed by Filter: 7499
+         ->  Hash Join  (cost=127.78..293.92 rows=2 width=4) (actual time=0.865..2.053 rows=1 loops=1)
+               Hash Cond: (i.id = pi.image_id)
+               ->  Seq Scan on images i  (cost=0.00..138.00 rows=7500 width=4) (actual time=0.006..0.632 rows=7500 loops=1)
+               ->  Hash  (cost=127.75..127.75 rows=2 width=8) (actual time=0.587..0.588 rows=1 loops=1)
+                     Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                     ->  Seq Scan on postimages pi  (cost=0.00..127.75 rows=2 width=8) (actual time=0.084..0.545 rows=1 loops=1)
+                           Filter: (post_id = 1)
+                           Rows Removed by Filter: 7499
+ Planning Time: 0.245 ms
+ Execution Time: 2.889 ms
+(15 rows)
+*/
