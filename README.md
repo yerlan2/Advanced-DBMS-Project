@@ -304,178 +304,51 @@ postimages (
 
 ***
 ## SQL project queries
-1)
-```sql
-SELECT 
-    p.id id, i.id image_id, i.path image_path, 
-    a.name account_name, c.name category_name, 
-    p.title, p.content, 
-    p.created_date created_date, 
-    p.like_count, p.view_count 
-FROM posts p, accounts a, categories c
-LEFT JOIN postimages pi ON pi.post_id = p.id 
-LEFT JOIN images i ON pi.image_id = i.id 
-LEFT JOIN subscriptions s ON p.account_id=s.author_id
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-AND (
-    p.account_id=? 
-    OR 
-    p.account_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
-)
-GROUP BY p.id
-ORDER BY p.id DESC
-LIMIT ? OFFSET ?
-```
-2)
-```sql
-SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-FROM accounts a, categories c, posts p 
-LEFT JOIN postimages pi ON pi.post_id = p.id 
-LEFT JOIN images i ON pi.image_id = i.id 
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-GROUP BY p.id
-ORDER BY p.id DESC
-LIMIT ? OFFSET ?
-```
-3)
-```sql
-SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-FROM accounts a, categories c, posts p 
-LEFT JOIN postimages pi ON pi.post_id = p.id 
-LEFT JOIN images i ON pi.image_id = i.id 
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-GROUP BY p.id
-HAVING c.id=?
-ORDER BY p.id DESC
-LIMIT ? OFFSET ?
-```
-4)
-```sql
-SELECT p.id id, a.id account_id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-FROM posts p, accounts a, categories c
-LEFT JOIN images i ON a.image_id = i.id
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-AND p.id=? 
-```
-5)
-```sql
-SELECT c.id as id, c.post_id as post_id, a.name as account_name, i.path image_path, c.content as content, c.added_date as added_date 
-FROM comments c, accounts a 
-LEFT JOIN images i ON a.image_id = i.id
-WHERE c.account_id=a.id 
-AND c.post_id=? 
-ORDER BY added_date DESC
-```
-6)
-```sql
-SELECT i.id, i.path 
-FROM images i, postimages pi, posts p 
-WHERE i.id=pi.image_id 
-AND pi.post_id=p.id and p.id=?
-```
-7)
-```sql
-UPDATE posts SET view_count = view_count + 1 WHERE id = ?
-```
-8)
-```sql
-SELECT * FROM likes WHERE post_id=? AND account_id=?
-```
-9)
-```sql
-INSERT INTO likes(post_id, account_id) VALUES(?,?)
-```
-10)
-```sql
-UPDATE posts SET like_count = like_count + 1 WHERE id = ?
-```
-11)
-```sql
-DELETE FROM likes WHERE post_id=? AND account_id=?
-```
-12)
-```sql
-UPDATE posts SET like_count = like_count - 1 WHERE id = ?
-```
-13)
-```sql
-SELECT like_count FROM posts WHERE id=?
-```
-14)
-```sql
-SELECT * FROM categories
-```
-15)
-```sql
-SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-FROM accounts a, categories c, posts p 
-LEFT JOIN postimages pi ON pi.post_id = p.id 
-LEFT JOIN images i ON pi.image_id = i.id 
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-GROUP BY p.id
-HAVING LOWER(p.title) LIKE LOWER(?)
-OR LOWER(p.content) LIKE LOWER(?)
-OR LOWER(c.name) LIKE LOWER(?)
-ORDER BY p.id DESC
-LIMIT ? OFFSET ?
-```
-16)
-```sql
-SELECT a.id id, a.name name, i.path image_path
-FROM accounts a
-LEFT JOIN images i ON a.image_id = i.id
-WHERE a.id!=?
-ORDER BY id DESC
-LIMIT ? OFFSET ? 
-```
-17)
-```sql
-SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
-FROM accounts a, categories c, posts p 
-LEFT JOIN postimages pi ON pi.post_id = p.id 
-LEFT JOIN images i ON pi.image_id = i.id 
-WHERE p.account_id=a.id 
-AND p.category_id=c.id 
-GROUP BY p.id
-HAVING a.id=?
-ORDER BY p.id DESC
-LIMIT 10 OFFSET ?
-```
-18)
-```sql
-SELECT a.id id, a.name name, i.path image_path
-FROM subscriptions s, accounts a
-LEFT JOIN images i ON a.image_id = i.id
-WHERE s.author_id = a.id
-AND s.follower_id=?
-ORDER BY a.id DESC
-LIMIT ? OFFSET ?
-```
-19)
-```sql
-SELECT a.id id, a.name name, i.path image_path
-FROM subscriptions s, accounts a
-LEFT JOIN images i ON a.image_id = i.id
-WHERE s.follower_id = a.id
-AND s.author_id=?
-ORDER BY a.id DESC
-LIMIT ? OFFSET ?
-```
-20)
-```sql
-SELECT * FROM subscriptions WHERE follower_id=? AND author_id=?
-```
-21)
-```sql
-INSERT INTO subscriptions(follower_id, author_id) VALUES(?,?)
-```
-22)
-```sql
-DELETE FROM subscriptions WHERE follower_id=? AND author_id=?
-```
+<pre>
+def index():
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
+    conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+    if  session.get('logged_in'):
+        account_id = session['account'][0]
+        posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
+            SELECT 
+                p.id id, i.id image_id, i.path image_path, 
+                a.name account_name, c.name category_name, 
+                p.title, p.content, 
+                p.created_date created_date, 
+                p.like_count, p.view_count 
+            FROM posts p, accounts a, categories c
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            LEFT JOIN subscriptions s ON p.account_id=s.author_id
+            WHERE p.account_id=a.id 
+            AND p.category_id=c.id 
+            AND (
+                p.account_id=? 
+                OR 
+                p.account_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+            )
+            GROUP BY p.id
+            ORDER BY p.id DESC
+            LIMIT ? OFFSET ? """
+        ).fetchall()
+    else:
+        posts = execute_query_param(conn, (limit, offset,), """
+            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p 
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            WHERE p.account_id=a.id 
+            AND p.category_id=c.id 
+            GROUP BY p.id
+            ORDER BY p.id DESC
+            LIMIT ? OFFSET ? """
+        ).fetchall()
+    conn.close()
+    next_pages_num = -(-len(posts)//post_num)-1
+    return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
 
+</pre>
