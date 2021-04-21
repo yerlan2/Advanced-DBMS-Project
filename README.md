@@ -350,5 +350,212 @@ def index():
     conn.close()
     next_pages_num = -(-len(posts)//post_num)-1
     return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
+</pre>
 
+<pre>
+def all_posts():
+    if not session.get('logged_in'):
+        return redirect(url_for('login', next=request.full_path))
+    page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+    offset = (page-1)*post_num
+    limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
+    conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+    account_id = session['account'][0]
+    posts = execute_query_param(conn, (account_id, account_id, limit, offset,), """
+        SELECT 
+            p.id id, i.id image_id, i.path image_path, 
+            a.name account_name, c.name category_name, 
+            p.title, p.content, 
+            p.created_date created_date, 
+            p.like_count, p.view_count 
+        FROM posts p, accounts a, categories c
+        LEFT JOIN postimages pi ON pi.post_id = p.id 
+        LEFT JOIN images i ON pi.image_id = i.id 
+        LEFT JOIN subscriptions s ON p.account_id=s.author_id
+        WHERE p.account_id=a.id 
+        AND p.category_id=c.id 
+        AND p.account_id!=?
+        AND p.account_id NOT IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+        GROUP BY p.id
+        ORDER BY p.id DESC
+        LIMIT ? OFFSET ? """
+    ).fetchall()
+    conn.close()
+    next_pages_num = -(-len(posts)//post_num)-1
+    return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
+</pre>
+
+<pre>
+def post_detail(id):
+    conn = get_db()
+    categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+    post = execute_query_param(conn, (id,), """
+        SELECT p.id id, a.id account_id, a.name account_name, i.path image_path, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+        FROM posts p, accounts a, categories c
+        LEFT JOIN images i ON a.image_id = i.id
+        WHERE p.account_id=a.id 
+        AND p.category_id=c.id 
+        AND p.id=? """
+    ).fetchone()
+    like_result = False
+    if session.get('logged_in'):
+        account_id = session['account'][0]
+        like_result = check_like(conn, id, account_id)
+    comments = execute_query_param(conn, (id,), """
+        SELECT c.id as id, c.post_id as post_id, a.name as account_name, i.path image_path, c.content as content, c.added_date as added_date 
+        FROM comments c, accounts a 
+        LEFT JOIN images i ON a.image_id = i.id
+        WHERE c.account_id=a.id 
+        AND c.post_id=? 
+        ORDER BY added_date DESC """
+    ).fetchall()
+    images = execute_query_param(conn, (id,), """
+        SELECT i.id, i.path 
+        FROM images i, postimages pi, posts p 
+        WHERE i.id=pi.image_id 
+        AND pi.post_id=p.id and p.id=? """
+    ).fetchall()
+    execute_commit(conn, (id,), "UPDATE posts SET view_count = view_count + 1 WHERE id = ?")
+    conn.close()
+    return render_template("main/post_detail.html", post=post, check_like=like_result, comments=comments, images=images, categories=categories)
+</pre>
+
+<pre>
+def search():
+    if request.method == "GET":
+        q = request.args.get('q')
+        query = f"%{q}%"
+        page = 1 if request.args.get('p') is None else int(request.args.get('p'))
+        offset = (page-1)*post_num
+        limit = -(-pagination_num//2)*post_num if page >= -(-pagination_num//2) else (pagination_num-page+1)*post_num
+        conn = get_db()
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        posts = execute_query_param(conn, (query, query, query, limit, offset,), """
+            SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p 
+            LEFT JOIN postimages pi ON pi.post_id = p.id 
+            LEFT JOIN images i ON pi.image_id = i.id 
+            WHERE p.account_id=a.id 
+            AND p.category_id=c.id 
+            GROUP BY p.id
+            HAVING LOWER(p.title) LIKE LOWER(?)
+            OR LOWER(p.content) LIKE LOWER(?)
+            OR LOWER(c.name) LIKE LOWER(?)
+            ORDER BY p.id DESC
+            LIMIT ? OFFSET ? """
+        ).fetchall()
+        conn.close()
+        next_pages_num = -(-len(posts)//post_num)-1
+        return render_template("main/home.html", categories=categories, posts=posts[:post_num], page=page, pagination_num=pagination_num, next_pages_num=next_pages_num)
+</pre>
+
+<pre>
+def create_post():
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        account_id = session['account'][0]
+        category_id = request.form['category_id']
+        title = request.form['title']
+        content = request.form['content']
+        images_paths = request.form['images_paths'].split()
+        post_id = None
+        conn = get_db()
+        with conn:
+            post = (account_id, category_id, title, content)
+            post_id = execute_commit(conn, post, 
+                "INSERT INTO posts(account_id, category_id, title, content) VALUES(?,?,?,?)"
+            )
+            for image_path in images_paths:
+                image_id = execute_commit(conn, (image_path,), 
+                    "INSERT INTO images(path) VALUES(?)"
+                )
+                execute_commit(conn, (post_id, image_id), 
+                    "INSERT INTO postimages(post_id, image_id) VALUES(?,?)"
+                )
+        return redirect(f"/post/{post_id}")
+    else:
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        conn = get_db()
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        conn.close()
+        return render_template("main/post_create.html", categories=categories)
+</pre>
+
+<pre>
+def update_post(id):
+    if request.method == "POST":
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        account_id = session['account'][0]
+        post_acccount_id = int(request.form['post_acccount_id']) if request.form['post_acccount_id'] else -1
+        if post_acccount_id != account_id:
+            print(post_acccount_id, account_id)
+            return redirect("/")
+        category_id = request.form['category_id']
+        title = request.form['title']
+        content = request.form['content']
+        images_paths = request.form['images_paths'].split()
+        conn = get_db()
+        with conn:
+            post = (category_id, title, content, id)
+            execute_commit(conn, post, """
+                UPDATE posts 
+                SET category_id=?, title=?, content=? 
+                WHERE id=?"""
+            )
+            images = execute_query_param(conn, (id,), """
+                SELECT i.path image_path
+                FROM postimages pi, images i
+                WHERE pi.image_id=i.id
+                AND pi.post_id=? """
+            ).fetchall()
+            flag = False
+            print(images_paths, images)
+            if len(images_paths) == len(images):
+                for i in range(len(images)):
+                    if images_paths[i] != images[i]['image_path']:
+                        print(images_paths[i], images[i]['image_path'])
+                        flag = True
+            else: flag = True
+            if flag:
+                execute_commit(conn, (id,), """
+                    DELETE FROM images 
+                    WHERE id IN (
+                        SELECT pi.image_id
+                        FROM postimages pi, images i
+                        WHERE pi.image_id=i.id
+                        AND pi.post_id=?) """
+                )
+                execute_commit(conn, (id,), """
+                    DELETE FROM postimages 
+                    WHERE post_id IN (
+                        SELECT pi.post_id
+                        FROM postimages pi
+                        WHERE pi.post_id=?) """
+                )
+                for image_path in images_paths:
+                    image_id = execute_commit(conn, (image_path,), 
+                        "INSERT INTO images(path) VALUES(?)")
+                    execute_commit(conn, (id, image_id), 
+                        "INSERT INTO postimages(post_id, image_id) VALUES(?,?)")
+        return redirect(f"/post/{id}")
+    else:
+        if not session.get('logged_in'):
+            return redirect(url_for('login', next=request.full_path))
+        conn = get_db()
+        post = execute_query_param(conn, (id,), "SELECT * FROM posts WHERE id=?").fetchone()
+        if post['account_id'] != session['account'][0]:
+            return redirect(f"/post/{id}")
+        categories = execute_query(conn, "SELECT * FROM categories").fetchall()
+        images = execute_query_param(conn, (id,), """
+            SELECT pi.post_id, pi.image_id, i.path image_path
+            FROM postimages pi, images i
+            WHERE pi.image_id=i.id
+            AND pi.post_id=? """
+        ).fetchall()
+        conn.close()
+        return render_template("main/post_edit.html", categories=categories, post=post, images=images)
 </pre>
