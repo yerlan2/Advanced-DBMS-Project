@@ -54,12 +54,12 @@
                             {% if post.image_path %}
                             <p class="mb-1">
                                 <img src="{{ post.image_path }}" alt="Image" class="img-fluid"
-                                    style="object-fit: none; object-position: left; height: 500px; width: 800px;">
+                                    style="object-fit: cover; object-position: center; height: 500px; width: 800px;">
                             </p>
                             {% else %}
                             <p class="mb-1 d-flex justify-content-center" style="background-color: #f8f9fa;">
                                 <img src="{{ url_for('static', filename='images/no_image.png') }}" alt="Image"
-                                    class="img-bg" style="object-fit: none; object-position: left; height: 400px;">
+                                    class="img-bg" style="object-fit: cover; object-position: center; height: 400px;">
                             </p>
                             {% endif %}
                             <h1 class="mb-4">

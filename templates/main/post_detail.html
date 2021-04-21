@@ -68,18 +68,18 @@
                         {% if images|length %}
                         <p class="mb-1">
                             <img src="{{ images[0].path }}" alt="Image" class="img-fluid"
-                                style="object-fit: none; object-position: left; height: 500px; width: 800px;">
+                                style="object-fit: cover; object-position: center; height: 500px; width: 800px;">
                         </p>
                         <div class="d-flex mb-5">
                             {% for image in images[1:] %}
                             <img src="{{ image.path }}" alt="Image" class="img-fluid mr-1" width="150px"
-                                style="object-fit: none; object-position: left; height: 150px;">
+                                style="object-fit: cover; object-position: center; height: 150px;">
                             {% endfor %}
                         </div>
                         {% else %}
                         <p class="mb-1 d-flex justify-content-center" style="background-color: #f8f9fa;">
                             <img src="{{ url_for('static', filename='images/no_image.png') }}" alt="Image"
-                                class="img-bg" style="object-fit: none; object-position: left; height: 400px;">
+                                class="img-bg" style="object-fit: cover; object-position: center; height: 400px;">
                         </p>
                         {% endif %}
                         <h1 class="mb-4">

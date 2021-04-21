@@ -17,10 +17,10 @@
                     <div class="half-post-entry d-block d-lg-flex bg-light">
                         {% if post.image_path %}
                         <img class="img-bg" src="{{ post.image_path }}" alt="{{ post.image_id }}"
-                            style="object-fit: none; object-position: center; height: 400px;">
+                            style="object-fit: cover; object-position: center; height: 400px;">
                         {% else %}
                         <img src="{{ url_for('static', filename='images/no_image.png') }}" alt="Image" class="img-bg"
-                            style="object-fit: none; object-position: center; height: 400px;">
+                            style="object-fit: cover; object-position: center; height: 400px;">
                         {% endif %}
                         <div class="contents">
                             <h2>
