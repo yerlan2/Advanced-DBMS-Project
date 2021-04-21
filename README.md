@@ -304,7 +304,7 @@ postimages (
 
 ***
 ## SQL project queries
-
+```sql
 SELECT 
                 p.id id, i.id image_id, i.path image_path, 
                 a.name account_name, c.name category_name, 
@@ -325,3 +325,4 @@ SELECT
             GROUP BY p.id
             ORDER BY p.id DESC
             LIMIT ? OFFSET ?
+```
