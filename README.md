@@ -304,24 +304,37 @@ postimages (
 
 ***
 ## SQL project queries
+1)
 ```sql
 SELECT 
-                p.id id, i.id image_id, i.path image_path, 
-                a.name account_name, c.name category_name, 
-                p.title, p.content, 
-                p.created_date created_date, 
-                p.like_count, p.view_count 
-            FROM posts p, accounts a, categories c
+    p.id id, i.id image_id, i.path image_path, 
+    a.name account_name, c.name category_name, 
+    p.title, p.content, 
+    p.created_date created_date, 
+    p.like_count, p.view_count 
+FROM posts p, accounts a, categories c
+LEFT JOIN postimages pi ON pi.post_id = p.id 
+LEFT JOIN images i ON pi.image_id = i.id 
+LEFT JOIN subscriptions s ON p.account_id=s.author_id
+WHERE p.account_id=a.id 
+AND p.category_id=c.id 
+AND (
+    p.account_id=? 
+    OR 
+    p.account_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
+)
+GROUP BY p.id
+ORDER BY p.id DESC
+LIMIT ? OFFSET ?
+```
+2)
+```sql
+SELECT p.id id, i.id image_id, i.path image_path, a.name account_name, c.name category_name, p.title title, p.content content, p.created_date created_date, p.like_count like_count, p.view_count view_count 
+            FROM accounts a, categories c, posts p 
             LEFT JOIN postimages pi ON pi.post_id = p.id 
             LEFT JOIN images i ON pi.image_id = i.id 
-            LEFT JOIN subscriptions s ON p.account_id=s.author_id
             WHERE p.account_id=a.id 
             AND p.category_id=c.id 
-            AND (
-                p.account_id=? 
-                OR 
-                p.account_id IN (SELECT author_id FROM subscriptions WHERE follower_id=?)
-            )
             GROUP BY p.id
             ORDER BY p.id DESC
             LIMIT ? OFFSET ?
