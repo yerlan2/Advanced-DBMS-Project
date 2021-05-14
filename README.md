@@ -559,3 +559,7 @@ def update_post(id):
         conn.close()
         return render_template("main/post_edit.html", categories=categories, post=post, images=images)
 </pre>
+
+## Presentation video link
+
+https://drive.google.com/file/d/1PH4OIN7uqIM_ILAPWfnvYC_P4IQqmJoH/view?usp=sharing
